@@ -1,6 +1,6 @@
 {
   "name": "leed",
-  "version": "6.23.0",
+  "version": "6.24.0",
   "description": "Build, preview and publish Leed CMS websites, change CMS settings and manage assets from Claude, with the Leed CMS and documentation available over MCP when you add them.",
   "author": {
     "name": "Leed, Inc.",
