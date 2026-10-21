@@ -62,6 +62,10 @@ The release job `/leed:docs-ci` writes into your CI calls the Leed CMS from your
 
 The plugin itself sends nothing: it declares no MCP server, and the startup version check runs `leed --version` on your machine and makes no network call.
 
+### How long Leed keeps it
+
+What Claude writes to the Leed CMS through these skills (pages, settings, assets, menus, users, authors and contacts) becomes your company's data in Leed and is kept until you change or delete it, or until the company is deleted. A blocked-request report is kept as feedback so Leed can find and fix the firewall rule. Leed's [privacy policy](https://leed.ai/legal/privacy-policy/) covers all of it. On your machine, the CLI keeps your sign-in (including your email) in `~/.config/leed/auth.json` and the sites you set up in `~/.config/leed/sites.json`; `leed auth logout` removes the sign-in.
+
 ## Versions
 
 Every Leed release publishes the plugin with the same version number as the `leed` CLI. The `main` branch always holds the latest release, and each release is also tagged `vN.N.N`.
