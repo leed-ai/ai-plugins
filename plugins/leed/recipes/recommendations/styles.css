@@ -1,0 +1,17 @@
+/**
+ * Recommendation styles, from /leed:create recommendations (a Growth feature).
+ * Imported into layer(components) from tailwind/site.config.css.
+ * The card's rules are in recommendations-card.css, written only when the site does not style .page-stub already.
+ * Colors read only Leed's --site-* tokens, which the site's theme points at its brand tokens (site-patterns rule 9).
+ */
+
+/* The slot: the heading and the cards the engine appends after it share one grid, the heading spanning it. */
+.recommendations {
+  @apply mx-auto my-12 grid max-w-6xl gap-6 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-3;
+  background: var(--site-current-location-bg-color);
+}
+
+.recommendations__heading {
+  @apply col-span-full m-0 text-2xl font-bold;
+  color: var(--site-header-2-color);
+}

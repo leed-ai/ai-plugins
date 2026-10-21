@@ -1,0 +1,8 @@
+
+{{!-- The recommendation preview, from /leed:create recommendations. Under `leed site build --serve` only:
+      leedSiteEnv.env.serverMode is false in every other build, so a deployed or staging page never references
+      the file. The script also checks the hostname at run time, because a served build is reachable from other
+      machines on the network. See the header of src/static/js/recommendations-preview.js. --}}
+{{#if this.leedSiteEnv.env.serverMode}}
+<script defer src="/static/js/recommendations-preview.js"></script>
+{{/if}}

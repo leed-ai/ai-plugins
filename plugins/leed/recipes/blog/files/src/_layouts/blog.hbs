@@ -1,0 +1,127 @@
+{{!--
+  Blog article layout, from the Leed blog recipe (/leed:create blog).
+  Frontmatter and page fields it reads:
+    title         - the article heading
+    featureImage  - shown above the heading by FeatureImage
+    labels        - drive the announcement and multipart series boxes
+    content       - the article body
+    publishedAt   - the "Published" date
+    authors       - the author byline, through the Authors helper
+  Colors come from Leed's --site-* tokens, which the site's theme points at its brand tokens.
+--}}
+{{#>site-template}}
+
+<!-- Start Body Copy-->
+<main>
+  <section id="content">
+    <div class="relative py-16 bg-(--site-bg-color) overflow-hidden">
+      <div class="hidden lg:block lg:absolute lg:inset-y-0 lg:h-full lg:w-full">
+        <div class="relative h-full text-lg max-w-prose mx-auto" aria-hidden="true">
+          <svg class="absolute top-12 left-full transform translate-x-32" width="404" height="384" fill="none"
+            viewBox="0 0 404 384">
+            <defs>
+              <pattern id="74b3fd99-0a6f-4271-bef2-e80eeafdf357" x="0" y="0" width="20" height="20"
+                patternUnits="userSpaceOnUse">
+                <rect x="0" y="0" width="4" height="4" class="text-(--site-border-color)" fill="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="404" height="384" fill="url(#74b3fd99-0a6f-4271-bef2-e80eeafdf357)" />
+          </svg>
+          <svg class="absolute top-1/2 right-full transform -translate-y-1/2 -translate-x-32" width="404" height="384"
+            fill="none" viewBox="0 0 404 384">
+            <defs>
+              <pattern id="f210dbf6-a58d-4871-961e-36d5016a0f49" x="0" y="0" width="20" height="20"
+                patternUnits="userSpaceOnUse">
+                <rect x="0" y="0" width="4" height="4" class="text-(--site-border-color)" fill="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="404" height="384" fill="url(#f210dbf6-a58d-4871-961e-36d5016a0f49)" />
+          </svg>
+          <svg class="absolute bottom-12 left-full transform translate-x-32" width="404" height="384" fill="none"
+            viewBox="0 0 404 384">
+            <defs>
+              <pattern id="d3eb07ae-5182-43e6-857d-35c643af9034" x="0" y="0" width="20" height="20"
+                patternUnits="userSpaceOnUse">
+                <rect x="0" y="0" width="4" height="4" class="text-(--site-border-color)" fill="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="404" height="384" fill="url(#d3eb07ae-5182-43e6-857d-35c643af9034)" />
+          </svg>
+        </div>
+      </div>
+
+
+      <div class="relative px-4 lg:prose-lg mt-8 prose mx-auto">
+        <article id="blog-copy">
+          {{#FeatureImage}}class="h-48 w-full object-cover" sizes="(min-width: 768px) 720px, 100vw"{{/FeatureImage}}
+          <!-- This comes from the TITLE attribute of the page -->
+          <h1
+            class="max-w-prose mx-auto mt-2 block text-3xl text-center leading-8 font-extrabold tracking-tight text-(--site-header-1-color) sm:text-4xl">
+            {{{ title }}}
+          </h1>
+
+          {{#each this.labels}} {{! Labels assigned to the page - 'this' is the uuid of the label }}
+            {{#with (label this) }} {{! Scope 'this' is the keyed label object }}
+              {{#AnnouncementSeries ../this}} {{! uuid of the label - Series returns a collection (ascending by date) of
+              pages }}
+                {{#if isLast}} {{! we only render this block to display the last item in the series }}
+                  {{#unlessEq this.data.page.url ../../../page.url }} {{! compare the url of the page in this iteration of the
+                  series to the url of the page being generated - we don't to the page to itself }}
+                  <section class="announcement-series">
+                    <p>
+                      Find this page useful? This page is part of the series: <b>{{ ../this.name }}</b>.
+                      The latest page in the series is <a href="{{ this.data.page.url }}">{{ this.data.title }}</a>.
+                    </p>
+                  </section>
+                  <hr>
+                  {{/unlessEq}}
+                {{/if}}
+              {{/AnnouncementSeries}}
+            {{/with}}
+          {{/each}}
+
+          {{#each this.labels}} {{! Labels assigned to the page - 'this' is now the uuid of the label }}
+            {{#IfMultipartSeries this}} {{! this changes the context to be a label object }}
+              <section class="multipart-series">
+                <p class="series-name">{{ this.name }}</p> {{! we use this, because we are in the context of a label object }}
+                <p class="series-description">{{ this.description }}</p>
+                <ol>
+                  {{#MultipartSeries ../this }} {{! uuid of the label - Series returns a collection (ascending by date) of pages }}
+                    {{#eq this.data.page.url ../../../page.url }}
+                    <li class="current-series-page">{{ this.data.title }}</li>
+                    {{else}}
+                    <li class="series-page"><a href="{{ this.data.page.url }}">{{ this.data.title }}</a></li>
+                    {{/eq}}
+                  {{/MultipartSeries}}
+                </ol>
+              </section>
+              <hr>
+            {{/IfMultipartSeries}}
+          {{/each}}
+
+          <!-- START PAGE CONTENT-->
+          {{{ process content }}}
+          <!-- END PAGE CONTENT-->
+          {{!-- leed:after-content — /leed:create cta and /leed:create recommendations put their slots here, on a Growth plan. --}}
+          <p>Published: <time datetime="{{#date 'iso' }}{{ publishedAt }}{{/date}}">{{#date "default" }}{{ publishedAt }}{{/date}}</time></p>
+          <section id="authors">
+            {{#Authors this true}}
+            <div>
+              <div class="mt-6 flex items-center">
+                {{#Image image "profile" }}class="rounded-full" width="128" alt="Profile picture of {{ fullName  }}"{{/Image}}
+                <span class="author ml-8">{{ fullName }}</span>
+              </div>
+            </div>
+            <p>{{{ biography }}}</p>
+            {{/Authors}}
+          </section>
+        </article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- End Body Copy-->
+
+{{/site-template}}

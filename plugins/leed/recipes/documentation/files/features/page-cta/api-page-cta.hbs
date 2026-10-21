@@ -1,0 +1,14 @@
+{{!--
+    The call to action at the foot of an API reference page, from /leed:create documentation (feature
+    page-cta). Any plan: Leed's API layout renders this file above the page's Previous/Next links because
+    it exists.
+
+    Rendered twice. The API layout writes its Previous/Next links twice, once in the main column for wide
+    screens (hidden xl:block) and once under the page for narrow ones (xl:hidden), and includes this file
+    above each, with the same context. So the markup carries no breakpoint class and no id:
+    tailwind/docs/page-cta.css gives the copy inside .api-main-column `hidden xl:block` and the other
+    `xl:hidden`, and exactly one shows at each width. Never attach a script that assumes one copy.
+--}}
+<aside class="api-page-cta" aria-label="###CTA_TEXT###">
+  <p>###CTA_LEAD### <a href="###CTA_HREF###">###CTA_TEXT###</a></p>
+</aside>

@@ -1,0 +1,38 @@
+{{!--
+    The site header, from the Leed plugin's site-onboarding starter.
+
+    One menu builder, not two (site-patterns rule 1): the same <ul> is the desktop bar and the
+    mobile drawer, and tailwind/partials/menu.css decides which shape it takes. The items come
+    from the CMS menu named "Header Menu"; never hand-write a nav link here.
+
+    Params:
+      docs            true when docs-header.hbs renders this inside Leed's documentation wrapper.
+                      Leed's wrapper is fixed and measured there, so this header is neither fixed
+                      nor measured on docs pages (site-patterns rule 12: one writer of --height-header).
+      showDocsSearch  true to show Leed's documentation search (rule 4). Docs pages only: the
+                      search modal exists only inside the documentation shell.
+
+    The logo links home by pageid: (rule 5), never by path. src/static/js/site-header.js measures
+    this header and opens the drawer.
+--}}
+<header id="menu-container" class="site-header{{#unless docs}} site-header--fixed{{/unless}}"{{#unless docs}} data-measure-header{{/unless}}>
+  <div class="site-header__bar">
+    <a href="pageid:###HOME_PAGE_ID###" class="site-header__logo" aria-label="{{ siteTitle }}, home"
+       data-reason="utm_campaign=leed&utm_source=internal&utm_medium=header&utm_term=logo">{{ siteTitle }}</a>
+
+    <button type="button" class="menu-btn" data-menu-toggle aria-label="Open menu" aria-expanded="false" aria-controls="site-nav">
+      <i class="fa-solid leed-icon-menu" aria-hidden="true"></i>
+    </button>
+
+    <div class="nav-right" id="site-nav" data-menu>
+      <nav aria-label="Main">
+        {{> leed/menu/builder menuName="Header Menu" menuClass="menu-top" submenuClass="menu-top-submenu" }}
+      </nav>
+
+      {{#if showDocsSearch}}
+      {{> leed/docs/document-search compact=true }}
+      {{/if}}
+    </div>
+  </div>
+</header>
+<script type="module" src="/static/js/site-header.js?v=1"></script>

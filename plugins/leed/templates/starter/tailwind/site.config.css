@@ -1,0 +1,15 @@
+@import "tailwindcss" source("../src");
+
+/* Tokens only, unlayered so they beat Leed's layered defaults (site-patterns rules 9 and 10). */
+@import "./site/theme.css";
+
+/* Site styles: element defaults in base, everything else in components (rule 10). */
+@import "./site/base.css" layer(base);
+@import "./site/buttons.css" layer(components);
+@import "./partials/menu.css" layer(components);
+@import "./partials/site.css" layer(components);
+
+/* Documentation overrides: unlayered, because an @utility cannot sit in a layer. */
+@import "./docs/color-theme-site.css";
+
+/* /leed:create recipes append their imports after this line, each in layer(components), a documentation override unlayered. */

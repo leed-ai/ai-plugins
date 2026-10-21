@@ -1,0 +1,195 @@
+{
+  "name": "starter-settings",
+  "description": "The CMS settings /leed:site-onboarding applies from the confirmed content model: section pages, labels, extra page types, the Header Menu and Footer Menu and their items, the company's site title, documentation font, the publish of exactly those records, and, once the promote has put its CSS on production, the documentation color theme color-theme-site. It creates no search index: Leed's search UI exists only on documentation pages, whose recipe makes its own. Each step names its CLI commands and the CMS MCP tools that do the same.",
+  "requires": ["cli-or-mcp"],
+  "menus": [
+    {
+      "slot": "top",
+      "name": "Header Menu",
+      "expanded": false,
+      "items": "One top-level item per confirmed header section, in the confirmed order, each linking to its page by pageid:."
+    },
+    {
+      "slot": "bottom",
+      "name": "Footer Menu",
+      "expanded": true,
+      "items": "One top-level folder (an item with no href) per confirmed footer column, each holding its pages as child items linking by pageid:."
+    }
+  ],
+  "companySettings": {
+    "always": ["documentationConfiguration.menus.top", "documentationConfiguration.menus.bottom"],
+    "fromInterview": ["siteTitle", "documentationConfiguration.font"],
+    "colorTheme": {
+      "starterOrAbove": "color-theme-site",
+      "below": "The built-in color-theme-<name> closest to the brand accent: amber, blue, cyan, emerald, fuchsia, green, indigo, lime, orange, pink, purple, red, rose, sky, teal, violet or yellow.",
+      "when": "A built-in theme ships in Leed's own CSS, so company-settings writes it with the rest. color-theme-site is defined by tailwind/docs/color-theme-site.css in the site repo, which reaches production only by a promote, while company settings publish straight to production: so it is written only by the docs-color-theme step, after the promote."
+    }
+  },
+  "steps": [
+    {
+      "id": "preflight",
+      "title": "Read what the company already has",
+      "needsRepo": false,
+      "cli": [
+        "leed settings pagetype list --json",
+        "leed settings menu list --json",
+        "leed settings label list --json",
+        "leed settings searchindex list --json",
+        "leed settings company get --json",
+        "leed settings pending --json"
+      ],
+      "mcp": "list_page_types, list_menus, list_labels, list_search_indexes, get_company_overview, list_pending_changes",
+      "do": [
+        "Record the Root page type's id (the row whose type is root), every other page type with its slug and kind, every menu with its id and name, every label with its slug, every search index with the page types it covers, and the company's siteTitle and documentationConfiguration (menus.top, menus.bottom, font, colorTheme).",
+        "Record which entries are already pending, so publish-settings can tell the user when one of them carries someone else's change too.",
+        "A provisioned company already has a Header Menu and a Footer Menu, bound as documentationConfiguration.menus.top and menus.bottom. Reuse them; never create a second menu with either name."
+      ]
+    },
+    {
+      "id": "read-tier",
+      "title": "Read the plan tier",
+      "needsRepo": true,
+      "cli": ["leed site eject --json"],
+      "mcp": null,
+      "do": [
+        "Record data.tier and the name of every row in data.templates. A null tier is treated as Free.",
+        "With no checkout, skip this step: treat the tier as Free until a write proves otherwise, and use a built-in color theme."
+      ]
+    },
+    {
+      "id": "create-pages",
+      "title": "Create a draft page for each confirmed section",
+      "needsRepo": false,
+      "cli": [
+        "leed page sync-state --page-type-id <rootPageTypeId> --json",
+        "leed page create --page-type-id <rootPageTypeId> --file <page.md> --json"
+      ],
+      "mcp": "list_pages, create_page_from_markdown",
+      "do": [
+        "Only for the confirmed sections that are plain pages (About, Pricing, Contact). A blog or a documentation set is made by /leed:create, never here, and the home page is the template-owned src/index.hbs, never a CMS page.",
+        "List the Root pages first. When a page with the section's title or path exists, use its pageId and create nothing.",
+        "Otherwise write a short Markdown file outside the site checkout, an H1 with the section's title and one paragraph from the interview, and create the page from it. Record data.pageId. The page is a draft until the user publishes it, and the menu builder hides an item whose page is unpublished."
+      ]
+    },
+    {
+      "id": "create-labels",
+      "title": "Create the confirmed labels",
+      "needsRepo": false,
+      "cli": ["leed settings label create --name <name> --slug <slug> --json"],
+      "mcp": "create_label",
+      "do": [
+        "One per confirmed label whose slug preflight did not find. Record data.labelId and the pending id label-<labelId>."
+      ]
+    },
+    {
+      "id": "create-page-types",
+      "title": "Create any other confirmed page type",
+      "needsRepo": false,
+      "cli": ["leed settings pagetype create --type posts --from-file <payload.json> --json"],
+      "mcp": "create_page_type",
+      "do": [
+        "Only for a confirmed page type that no recipe makes. Blogs and documentation sets go to /leed:create; skip this step when the content model has no other page type.",
+        "Skip a page type whose slug preflight found. Write the payload in full to a temporary JSON file outside the checkout, with no layout, so it starts on empty.hbs; its real layout is built later with site-builder and pointed at with leed settings pagetype set.",
+        "Record data.pageTypeId and the pending id page_type-<pageTypeId>."
+      ]
+    },
+    {
+      "id": "configure-menus",
+      "title": "Make sure the Header Menu and Footer Menu exist, with the footer open",
+      "needsRepo": false,
+      "cli": [
+        "leed settings menu create --name \"Header Menu\" --json",
+        "leed settings menu create --name \"Footer Menu\" --expanded true --json",
+        "leed settings menu get <menuId> --json",
+        "leed settings menu set-menu <menuId> --base-revision <revision> --expanded true --json"
+      ],
+      "mcp": "create_menu, get_menu, update_menu_fields",
+      "do": [
+        "Create a menu only when preflight found none with that exact name. A conflict names the existing menu's id: read it instead of creating another.",
+        "Read the Footer Menu. When its expanded flag is not true, set it with set-menu, using the revision the read returned: a footer shows every column open through the menu's own flag, never a param on the builder call.",
+        "Record both menuIds."
+      ]
+    },
+    {
+      "id": "add-menu-items",
+      "title": "Add the confirmed items to the menus",
+      "needsRepo": false,
+      "cli": [
+        "leed settings menu get <menuId> --json",
+        "leed settings menu add <menuId> --base-revision <revision> --top-level --name <name> --href pageid:<pageId> --json",
+        "leed settings menu add <menuId> --base-revision <revision> --top-level --name <name> --json",
+        "leed settings menu add <menuId> --base-revision <revision> --parent <menuItemId> --name <name> --href pageid:<pageId> --json"
+      ],
+      "mcp": "get_menu, add_menu_item",
+      "do": [
+        "Read the menu first. Skip an item when one with the same href already exists, and a folder when one with the same name exists at the top level. Never add a second item for the same page.",
+        "Give each item a name only. An item's title is a hover tooltip, not its label, so leave it unset unless the user asked for a tooltip on that item.",
+        "Every href is pageid:<pageId>. A blog's list page is pageid:list-<pageId of src/blog-index.hbs>, and a documentation set is its starting page's pageid:. Never a path.",
+        "Each write answers the next revision; pass it to the next add. On a conflict, read the menu again and retry that one add once.",
+        "Run this step again after /leed:create has made a blog or a documentation set, for the items that link to it."
+      ]
+    },
+    {
+      "id": "company-settings",
+      "title": "Set the site title, the menus' binding and the documentation theme",
+      "needsRepo": false,
+      "cli": ["leed settings company get --json", "leed settings company set --from-file <patch.json> --json"],
+      "mcp": "get_company_overview, update_company_settings",
+      "do": [
+        "Write a patch holding only what the confirmed proposal changes: siteTitle; documentationConfiguration.menus.top and menus.bottom set to the Header Menu and Footer Menu ids when they are not bound already; documentationConfiguration.font set to the site font; and, below Starter only, documentationConfiguration.colorTheme.",
+        "Never put color-theme-site in this patch. Company settings publish straight to production, but the CSS that defines color-theme-site reaches only staging when the templates are pushed: written now, the live documentation would lose its colors until a promote, and for good if the staging check fails. On Starter or above, leave colorTheme out here; the docs-color-theme step writes it once the CSS is on production.",
+        "Below Starter, colorTheme is the built-in theme closest to the brand accent, written here: Leed's own CSS defines it on every branch. Do not write tailwind/docs/color-theme-site.css or its import.",
+        "Never replace a value the company already has unless the confirmed proposal named that change. Skip the write when nothing would change."
+      ]
+    },
+    {
+      "id": "search-index",
+      "title": "Decide search: onboarding creates no search index",
+      "needsRepo": false,
+      "cli": ["leed settings searchindex list --json"],
+      "mcp": "list_search_indexes",
+      "do": [
+        "Create nothing. Leed's only search UI is the documentation search (leed/docs/document-search), which the starter header shows only on documentation pages (showDocsSearch, set by docs-header.hbs). An index over other page types would have nothing to query it.",
+        "When the proposal includes /leed:create documentation, that recipe creates the documentation set's index when it makes the page type, and visitors search there.",
+        "Otherwise there is no search, and the proposal says why: \"Search: none, because Leed's search UI exists only on documentation pages\". Say the same when the user asked for search but no documentation set: search arrives with one."
+      ]
+    },
+    {
+      "id": "publish-settings",
+      "title": "Publish what onboarding changed",
+      "needsRepo": false,
+      "cli": [
+        "leed settings pending --json",
+        "leed settings publish menu-<menuId> label-<labelId> page_type-<pageTypeId> company_settings-<companyId> --json"
+      ],
+      "mcp": "list_pending_changes, publish_pending_changes",
+      "do": [
+        "Read the pending changes first and record data.companyId (MCP: the company get_company_overview names).",
+        "Publish exactly the entries this run changed that the list holds: each menu it created or changed, each label and page type it created, company_settings when company-settings wrote. Onboarding creates no search index, so search_indexes is never one of them. Never --all: other people's unpublished changes may be pending.",
+        "When preflight found one of these entries already pending, tell the user that publishing it carries that earlier change too, before including it.",
+        "The section pages are drafts. Tell the user to publish each one (leed page publish <pageId>, MCP publish_page_now) when its text is ready; until then the menus hide them."
+      ]
+    },
+    {
+      "id": "docs-color-theme",
+      "title": "Set the documentation color theme to color-theme-site, after the promote",
+      "needsRepo": false,
+      "after": "promote",
+      "cli": [
+        "leed deployments status --json",
+        "leed settings company get --json",
+        "leed settings company set --from-file <patch.json> --json",
+        "leed settings pending --json",
+        "leed settings publish company_settings-<companyId> --json"
+      ],
+      "mcp": "list_deployments, get_company_overview, update_company_settings, list_pending_changes, publish_pending_changes",
+      "do": [
+        "Run this step last, only when the confirmed proposal sets colorTheme to color-theme-site and onboarding wrote (or found the starter's) tailwind/docs/color-theme-site.css with its import. Below Starter, company-settings already wrote the built-in theme; skip this step.",
+        "Company settings publish straight to production, while the file that defines color-theme-site reaches production only through a promote. Write the setting only once that file is on production, so the live documentation never names a theme its CSS lacks: the site-publish promote in this run succeeded (or answered already_promoted) after the onboarding push, and the newest public deployment in leed deployments status (MCP list_deployments) finished successfully; or, on a re-run, git fetch origin main then git cat-file -e origin/main:tailwind/docs/color-theme-site.css succeeds in the checkout and that public deployment has finished.",
+        "When the user did not promote, or the staging check blocked it, write nothing. Tell the user the documentation keeps its current color theme, and that running onboarding again after the promote sets color-theme-site.",
+        "Skip the write when colorTheme already is color-theme-site. Otherwise write a patch holding only documentationConfiguration.colorTheme, then publish exactly company_settings-<companyId> from the pending list.",
+        "A permission_denied from a plan refusal (a 402) means the plan does not include custom theme names: send the patch again with the closest built-in theme, once, and tell the user. Never retry the same patch."
+      ]
+    }
+  ]
+}

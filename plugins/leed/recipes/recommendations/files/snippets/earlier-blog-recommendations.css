@@ -1,0 +1,12 @@
+.recommendations {
+  @apply grid gap-6 bg-(--site-current-location-bg-color) py-20 px-4 sm:px-6;
+
+  .times,
+  .labels {
+    @apply hidden;
+  }
+
+  .title {
+    @apply pt-4;
+  }
+}

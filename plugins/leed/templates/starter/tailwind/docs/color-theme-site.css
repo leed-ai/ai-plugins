@@ -1,0 +1,55 @@
+/**
+ * The documentation color theme `color-theme-site`, from the Leed plugin's site-onboarding starter
+ * (site-patterns rule 9, references/theming.md). Every --docs-* name points at a brand token from
+ * tailwind/site/theme.css, so documentation pages wear the site's brand.
+ *
+ * - No dark block: the brand tokens already swap for dark mode, so light and dark are one definition.
+ * - Imported into tailwind/site.config.css with NO layer(): an @utility cannot sit inside a layer.
+ * - It looks unused, but it is not: the class arrives from the company's documentation configuration
+ *   (colorTheme "color-theme-site"), which a custom name needs the Starter plan or above to set.
+ */
+@utility color-theme-site {
+  --docs-primary-color: var(--brand-accent);
+  --docs-primary-color-hover: var(--brand-accent-hover);
+  --docs-primary-light: var(--brand-accent-muted);
+
+  --docs-text-color: var(--brand-fg);
+  --docs-body-link-color: var(--brand-accent);
+  --docs-body-link-hover-color: var(--brand-accent-hover);
+  --docs-copied-content-text-color: var(--brand-on-accent);
+
+  --docs-bg-color: var(--brand-bg);
+  --docs-border-color: var(--brand-border);
+  --docs-header-bg-color: var(--brand-surface);
+  --docs-header-border-color: var(--brand-border);
+  --docs-sidebar-link-bg-color: var(--brand-surface-muted);
+  --docs-sidebar-link-hover-bg-color: var(--brand-surface-muted);
+  --docs-current-location-bg-color: var(--brand-accent-muted);
+  --docs-card-bg-color: var(--brand-surface-muted);
+  --docs-step-light-color: var(--brand-surface-muted);
+  --docs-fixed-body-bg-color: var(--brand-fg);
+
+  --docs-code-bg-color: var(--brand-surface-muted);
+  --docs-code-inner-bg-color: var(--brand-surface);
+  --docs-code-border-color: var(--brand-border-strong);
+  --docs-code-bg-color-selection: var(--brand-accent-muted);
+
+  --docs-form-border-color: var(--brand-border);
+  --docs-form-border-color-hover: var(--brand-border-strong);
+
+  --docs-footer-social-icons-color: var(--brand-fg-muted);
+  --docs-footer-social-icons-hover-color: var(--brand-fg);
+  --docs-pagination-icon-color: var(--brand-fg-muted);
+  --docs-pagination-icon-color-hover: var(--brand-fg);
+
+  --docs-button-secondary-bg-color: var(--brand-surface-muted);
+  --docs-button-secondary-bg-hover-color: var(--brand-border);
+
+  --docs-search-button-bg-color: var(--brand-surface);
+  --docs-search-modal-bg-color: var(--brand-surface);
+  --docs-search-result-bg-color: var(--brand-surface);
+
+  --scroll-status-indicator-horizontal-start-bg: var(--brand-bg);
+  --scroll-status-indicator-horizontal-partial-bg: var(--brand-accent);
+  --scroll-status-indicator-horizontal-complete-bg: var(--brand-accent-hover);
+}

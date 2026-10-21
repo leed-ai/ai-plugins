@@ -1,0 +1,9 @@
+{{!--
+    A CMS-managed call to action, from /leed:create cta (site-patterns rule 3). Dynamic CTAs are a
+    Growth feature. Leed chooses the CTA by page type and label, serves it live and appends it into
+    this element, so editing it in the CMS changes the site without a republish. When none matches,
+    the element stays empty.
+
+    Use: {{> cta }\} in a layout or a pass-through page. Never the CTA helper, which is deprecated.
+--}}
+<section data-leed-cta class="site-cta"></section>

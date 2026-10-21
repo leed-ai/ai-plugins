@@ -1,0 +1,17 @@
+{
+  "description": "Checks at startup that the leed CLI and the Leed plugin are the same release, and prints one line when they are not",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/version-check.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

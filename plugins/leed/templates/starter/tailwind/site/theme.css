@@ -1,0 +1,150 @@
+/**
+ * The site's theme, from the Leed plugin's site-onboarding starter (site-patterns rule 9, references/theming.md).
+ * Imported into tailwind/site.config.css with NO layer(), so these tokens beat Leed's layered defaults.
+ *
+ * Three layers, in this order:
+ *   1. Brand tokens: the only place a color value is written. Light on :root, then the same names redefined
+ *      for dark mode. Change the brand here and nowhere else. The starter ships a neutral palette with a blue
+ *      accent; /leed:site-onboarding replaces these values with the brand colors from its interview.
+ *   2. Leed's contract: every --site-* name in the CLI's site-tokens.reference.css, plus the form,
+ *      reading-progress and alert tokens, each pointing at a brand token. No --site-* is left unset.
+ *   3. Tailwind names: @theme inline maps the brand tokens onto names DIFFERENT from theirs (--brand-bg is
+ *      --color-bg), so templates can write bg-surface or text-fg-muted.
+ */
+
+/* 1. Brand tokens. */
+:root {
+  --brand-bg: #fafafa;
+  --brand-surface: #ffffff;
+  --brand-surface-muted: #f1f1f3;
+  --brand-fg: #18181b;
+  --brand-fg-muted: #52525b;
+  --brand-border: #e4e4e7;
+  --brand-border-strong: #a1a1aa;
+  --brand-accent: #2563eb;
+  --brand-accent-hover: #1d4ed8;
+  --brand-accent-muted: #dbeafe;
+  --brand-on-accent: #ffffff;
+  --brand-warning: #b45309;
+  --brand-warning-muted: #fef3c7;
+  --brand-danger: #b91c1c;
+  --brand-danger-muted: #fee2e2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand-bg: #0b0b0f;
+    --brand-surface: #16161c;
+    --brand-surface-muted: #1f1f27;
+    --brand-fg: #f4f4f5;
+    --brand-fg-muted: #a1a1aa;
+    --brand-border: #2e2e38;
+    --brand-border-strong: #52525b;
+    --brand-accent: #60a5fa;
+    --brand-accent-hover: #93c5fd;
+    --brand-accent-muted: #1e3a5f;
+    --brand-on-accent: #0b0b0f;
+    --brand-warning: #fbbf24;
+    --brand-warning-muted: #3b2a06;
+    --brand-danger: #f87171;
+    --brand-danger-muted: #3b0d0d;
+  }
+}
+
+/* 2. Leed's contract. */
+:root {
+  --site-anchor-text-color: var(--brand-accent);
+  --site-anchor-text-color-active: var(--brand-accent-hover);
+  --site-anchor-text-color-hover: var(--brand-accent-hover);
+  --site-bg-color: var(--brand-bg);
+  --site-border-color: var(--brand-border);
+  --site-button-secondary-bg-color: var(--brand-surface-muted);
+  --site-button-secondary-bg-hover-color: var(--brand-border);
+  --site-code-bg-color: var(--brand-surface-muted);
+  --site-code-bg-color-selection: var(--brand-accent-muted);
+  --site-code-border-color: var(--brand-border-strong);
+  --site-code-inner-bg-color: var(--brand-surface);
+  --site-code-math-text-color: var(--brand-fg-muted);
+  --site-copied-content-bg-color: var(--brand-accent);
+  --site-copied-content-text-color: var(--brand-on-accent);
+  --site-current-location-bg-color: var(--brand-accent-muted);
+  --site-current-location-text-color: var(--brand-fg);
+  --site-fixed-body-bg-color: var(--brand-fg);
+  --site-footer-social-icons-hover-color: var(--brand-fg-muted);
+  --site-header-1-color: var(--brand-fg);
+  --site-header-2-color: var(--brand-fg);
+  --site-header-3-color: var(--brand-fg);
+  --site-header-4-color: var(--brand-fg);
+  --site-header-5-color: var(--brand-fg);
+  --site-header-6-color: var(--brand-fg);
+  --site-header-bg-color: var(--brand-surface);
+  --site-header-border-color: var(--brand-border);
+  --site-menu-bg-color: var(--brand-surface);
+  --site-pagination-icon-color: var(--brand-fg-muted);
+  --site-pagination-icon-color-hover: var(--brand-fg);
+  --site-primary-color: var(--brand-accent);
+  --site-primary-color-hover: var(--brand-accent-hover);
+  --site-primary-light: var(--brand-accent-muted);
+  --site-search-button-bg-color: var(--brand-surface);
+  --site-search-modal-bg-color: var(--brand-surface);
+  --site-step-light-color: var(--brand-surface-muted);
+  --site-text-color: var(--brand-fg);
+
+  --form-border-color: var(--brand-border);
+  --form-border-color-hover: var(--brand-border-strong);
+  --form-download-spinner-text: var(--brand-accent);
+
+  --scroll-status-indicator-horizontal-start-bg: transparent;
+  --scroll-status-indicator-horizontal-partial-bg: var(--brand-accent);
+  --scroll-status-indicator-horizontal-complete-bg: var(--brand-accent-hover);
+
+  --alert-note-border: var(--brand-border-strong);
+  --alert-note-bg: var(--brand-surface-muted);
+  --alert-note-text: var(--brand-fg);
+  --alert-note-code-bg: var(--brand-surface);
+  --alert-note-code-border: var(--brand-border);
+  --alert-tip-border: var(--brand-accent);
+  --alert-tip-bg: var(--brand-accent-muted);
+  --alert-tip-text: var(--brand-fg);
+  --alert-tip-code-bg: var(--brand-surface);
+  --alert-tip-code-border: var(--brand-border);
+  --alert-info-border: var(--brand-accent-hover);
+  --alert-info-bg: var(--brand-surface-muted);
+  --alert-info-text: var(--brand-fg);
+  --alert-info-code-bg: var(--brand-surface);
+  --alert-info-code-border: var(--brand-border);
+  --alert-warning-border: var(--brand-warning);
+  --alert-warning-bg: var(--brand-warning-muted);
+  --alert-warning-text: var(--brand-fg);
+  --alert-warning-code-bg: var(--brand-surface);
+  --alert-warning-code-border: var(--brand-border);
+  --alert-danger-border: var(--brand-danger);
+  --alert-danger-bg: var(--brand-danger-muted);
+  --alert-danger-text: var(--brand-fg);
+  --alert-danger-code-bg: var(--brand-surface);
+  --alert-danger-code-border: var(--brand-border);
+
+  /* Not a color: the header's resting height, the fallback while --height-header is unmeasured
+     (site-patterns rule 12). Never set --height-header itself. */
+  --site-header-height: 64px;
+}
+
+/* 3. Tailwind names, distinct from the brand token names. */
+@theme inline {
+  --color-bg: var(--brand-bg);
+  --color-surface: var(--brand-surface);
+  --color-surface-muted: var(--brand-surface-muted);
+  --color-fg: var(--brand-fg);
+  --color-fg-muted: var(--brand-fg-muted);
+  --color-line: var(--brand-border);
+  --color-line-strong: var(--brand-border-strong);
+  --color-accent: var(--brand-accent);
+  --color-accent-hover: var(--brand-accent-hover);
+  --color-accent-muted: var(--brand-accent-muted);
+  --color-on-accent: var(--brand-on-accent);
+}
+
+/* 4. The site font, set here once. site-template.hbs applies it with font-sans, as leed.ai does. */
+@theme {
+  --font-sans: var(--###FONT_CLASS###);
+}

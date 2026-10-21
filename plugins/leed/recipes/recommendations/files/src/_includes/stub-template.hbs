@@ -1,0 +1,17 @@
+<a class="page-stub" data-leed-slot="url">
+    <div class="page-stub__image"><img data-leed-slot="featureImage" data-leed-variant="medium" alt=""></div>
+    <div class="page-stub__body">
+        <div class="page-stub__title" data-leed-slot="title"></div>
+        <div class="page-stub__meta">
+            <time data-leed-slot="publishedAt" data-leed-date-format="MMM D, YYYY"></time>
+            <time data-leed-slot="readingTime"></time>
+        </div>
+        <div class="page-stub__summary" data-leed-slot="summary"></div>
+        <ul class="page-stub__labels">
+            <template data-leed-each="labels"><li data-leed-slot="name"></li></template>
+        </ul>
+        <div class="page-stub__authors">
+            <template data-leed-each="authors"><span data-leed-slot="fullName"></span></template>
+        </div>
+    </div>
+</a>

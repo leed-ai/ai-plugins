@@ -1,0 +1,17 @@
+{{!--
+    The site footer, from the Leed plugin's site-onboarding starter.
+
+    One menu builder (site-patterns rule 1), reading the CMS menu named "Footer Menu". Every
+    column renders open because that menu's own `expanded` flag is set in the CMS; an
+    `expanded=` param on the builder call is ignored, so there is none here.
+
+    Params:
+      docs   true when docs-footer.hbs renders this on documentation pages.
+--}}
+<footer class="site-footer{{#if docs}} site-footer--docs{{/if}}" aria-labelledby="footer-heading">
+  <h2 id="footer-heading" class="sr-only">Footer</h2>
+  <nav class="site-footer__menu" aria-label="Footer">
+    {{> leed/menu/builder menuName="Footer Menu" menuClass="menu-bottom" submenuClass="menu-bottom-submenu" }}
+  </nav>
+  <p class="site-footer__copyright">&copy; {{ year }} {{ siteTitle }}. All rights reserved.</p>
+</footer>

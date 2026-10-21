@@ -1,0 +1,198 @@
+{
+  "name": "blog",
+  "title": "Blog",
+  "description": "A blog: a posts page type at /blog/ with an article layout, a paged list of cards, and optional author and topic pages, styled from the site's brand tokens.",
+  "requires": ["cli", "site-repo"],
+  "pageType": {
+    "type": "posts",
+    "payload": {
+      "name": "Blog",
+      "slug": "blog",
+      "description": "A collection of posts that share insights, ideas, and updates to the industry.",
+      "layout": "blog.hbs",
+      "sitemapPriority": 0.8,
+      "labelSiteMapPriority": 0.6,
+      "autolink": true,
+      "noRender": false,
+      "includeInFeeds": true,
+      "autopostNewPages": true,
+      "allowRecommendations": false,
+      "requiredFields": {
+        "featureImage": true,
+        "form": "NotAllowed",
+        "summary": true,
+        "keywords": true
+      }
+    }
+  },
+  "constants": {
+    "separator": "topic"
+  },
+  "styles": {
+    "source": "styles.css",
+    "target": "tailwind/layouts/blog.css",
+    "importInto": "tailwind/site.config.css",
+    "import": "@import \"./layouts/blog.css\" layer(components);"
+  },
+  "files": [
+    {
+      "source": "files/src/_layouts/blog.hbs",
+      "target": "src/_layouts/blog.hbs",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/src/_layouts/content-list.hbs",
+      "target": "src/_layouts/content-list.hbs",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/src/_includes/contentCards.hbs",
+      "target": "src/_includes/contentCards.hbs",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/src/_includes/pagination.hbs",
+      "target": "src/_includes/pagination.hbs",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/src/blog-index.hbs",
+      "target": "src/blog-index.hbs",
+      "phase": "after-create"
+    }
+  ],
+  "features": {
+    "authors": {
+      "description": "One page per author at /blog/author/<author>/, listing everything they wrote.",
+      "default": true,
+      "files": [
+        {
+          "source": "files/features/authors/blog-authors.hbs",
+          "target": "src/blog-authors.hbs",
+          "phase": "after-create"
+        }
+      ]
+    },
+    "labels": {
+      "description": "One topic page per label at /blog/topic/<label>/, paged like the main list.",
+      "default": true,
+      "files": [
+        {
+          "source": "files/features/labels/blog-topic-index.hbs",
+          "target": "src/blog-###SEPARATOR###-index.hbs",
+          "phase": "after-create"
+        }
+      ]
+    }
+  },
+  "steps": [
+    {
+      "id": "preflight",
+      "title": "Check what already exists",
+      "needsRepo": true,
+      "cli": ["leed settings pagetype list --slug blog --json"],
+      "mcp": "list_page_types",
+      "do": [
+        "Confirm the current directory is the site repo root, the raw-content checkout: it holds identity.json, src/ and tailwind/site.config.css. Stop if any of them is missing; leed site list --json shows where each registered site's checkout is.",
+        "Ask which features to include (authors, labels). With no answer, use each feature's default.",
+        "Resolve every target first: replace ###SEPARATOR### in each target path with constants.separator, so the labels target is checked as src/blog-topic-index.hbs. Every existence check in this recipe uses the resolved path.",
+        "If a page type already publishes under the slug blog: when it is a posts type whose layout is blog.hbs, keep its pageTypeId and skip create-page-type, but still run write-before-create and publish-layouts, whose own checks keep what exists, so the layouts, partials and stylesheet the list pages need are present however the page type was made. Otherwise stop and report the conflict; never create a second one.",
+        "List every resolved file target (files, the chosen features, styles.target). A target that already exists is kept as it is and reported; it is never overwritten.",
+        "Check whether styles.importInto already holds the styles.import line."
+      ]
+    },
+    {
+      "id": "write-before-create",
+      "title": "Write the layouts, partials and stylesheet when missing",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "This step always runs, whether or not the page type already exists.",
+        "Copy every files[] entry whose phase is before-create from the recipe to its target, skipping targets that already exist.",
+        "Copy styles.source to styles.target, unless it exists.",
+        "Append the styles.import line to styles.importInto, unless it is already there."
+      ]
+    },
+    {
+      "id": "publish-layouts",
+      "title": "Push the layouts to staging",
+      "needsRepo": true,
+      "cli": [
+        "leed site validate",
+        "leed site build",
+        "leed site commit --dry-run -m \"Add the blog layouts from /leed:create blog\" --json",
+        "leed site commit -m \"Add the blog layouts from /leed:create blog\"",
+        "leed site push --json"
+      ],
+      "mcp": null,
+      "do": [
+        "Run the site-publish workflow's validate, build, commit and push steps. The CMS refuses a page type whose layout is not on the staging branch, so this push must land before create-page-type.",
+        "Before the real commit, run the commit with --dry-run. It commits the whole working tree, so when the files it lists include anything outside this recipe's resolved targets, styles.target and styles.importInto, stop and ask the user to commit or set those changes aside first; never commit them under this recipe's message.",
+        "Never skip this step on what this run wrote: an earlier run may have written the files and then failed before its push. Validate, build and commit when the working tree holds changes; when leed site validate refuses because nothing changed, there is nothing to commit, so skip to the push. Always run leed site push --json: with nothing ahead of staging it succeeds with pushed false, and with commits an earlier run made it sends them.",
+        "Go on to create-page-type only once the push succeeded and every before-create target, styles.target and the styles.import line are committed, so all of them are on staging."
+      ]
+    },
+    {
+      "id": "create-page-type",
+      "title": "Create the Blog page type",
+      "needsRepo": false,
+      "cli": ["leed settings pagetype create --type posts --from-file <payload.json> --json"],
+      "mcp": "create_page_type",
+      "do": [
+        "Write pageType.payload to a temporary JSON file outside the repo and pass it with --from-file; --type is pageType.type.",
+        "Record data.pageTypeId, and the pending id named in next (page_type-<pageTypeId>)."
+      ]
+    },
+    {
+      "id": "write-after-create",
+      "title": "Write the list, author and topic pages",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "Copy every files[] entry whose phase is after-create, and the files of each chosen feature, to their resolved targets. Check each resolved target again immediately before writing it, and skip it when it exists.",
+        "In each copied file, replace ###PAGE_TYPE_ID### with the pageTypeId, ###SEPARATOR### with constants.separator, and ###NEW_SHORT_ID### with a fresh 8-character lowercase hex id, a different one per file."
+      ]
+    },
+    {
+      "id": "publish-pages",
+      "title": "Push the list pages to staging",
+      "needsRepo": true,
+      "cli": [
+        "leed site validate",
+        "leed site build",
+        "leed site commit --dry-run -m \"Add the blog list pages from /leed:create blog\" --json",
+        "leed site commit -m \"Add the blog list pages from /leed:create blog\"",
+        "leed site push --json"
+      ],
+      "mcp": null,
+      "do": [
+        "Run the site-publish workflow's validate, build, commit and push steps again. The CMS committed src/blog/blog.11tydata.json to staging when it created the page type; leed site push rebases over it.",
+        "Before the real commit, run the commit with --dry-run. It commits the whole working tree, so when the files it lists include anything outside this recipe's resolved targets, styles.target and styles.importInto, stop and ask the user to commit or set those changes aside first; never commit them under this recipe's message.",
+        "As in publish-layouts, never skip this step on what this run wrote: validate, build and commit when the working tree holds changes, then always push, so pages an earlier run wrote but never pushed reach staging."
+      ]
+    },
+    {
+      "id": "publish-settings",
+      "title": "Publish the page type",
+      "needsRepo": false,
+      "cli": ["leed settings pending --json", "leed settings publish page_type-<pageTypeId> --json"],
+      "mcp": "list_pending_changes, publish_pending_changes",
+      "do": [
+        "Read the pending changes first. Publish page_type-<pageTypeId> only when the list holds it; when it is absent, the page type is already published and there is nothing to do. Never --all: other people's unpublished changes may be pending."
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Check the result",
+      "needsRepo": true,
+      "cli": ["leed settings pagetype get <pageTypeId> --json", "leed site validate"],
+      "mcp": "get_page_type",
+      "do": [
+        "Compare the stored page type with pageType.payload, field by field, and report any field that differs.",
+        "Hand over to the site-publish skill's staging verification for /blog/, which runs site-audit on the changed files when that skill is installed."
+      ]
+    }
+  ]
+}

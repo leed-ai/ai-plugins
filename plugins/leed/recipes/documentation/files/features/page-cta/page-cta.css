@@ -1,0 +1,38 @@
+/**
+ * The documentation page call to action, from /leed:create documentation (feature page-cta):
+ * src/_includes/docs-page-cta.hbs and api-page-cta.hbs.
+ * Imported unlayered from tailwind/site.config.css, like every documentation override (site-patterns rule 10).
+ * Colors read only the --docs-* tokens of the documentation color theme.
+ *
+ * A rule and a row, the quietest thing that still reads as an ask: it is the last element before the pager.
+ */
+.leed-documentation .docs-page-cta,
+.leed-documentation .api-page-cta {
+  @apply mt-10 pt-5 text-base;
+  border-top: 1px solid var(--docs-border-color);
+  color: var(--docs-text-color);
+}
+
+/* The article's prose rules would give this row a paragraph's margins. */
+.leed-documentation :is(.docs-page-cta, .api-page-cta) p {
+  @apply m-0;
+}
+
+.leed-documentation :is(.docs-page-cta, .api-page-cta) a {
+  @apply font-semibold;
+  color: var(--docs-body-link-color);
+}
+
+.leed-documentation :is(.docs-page-cta, .api-page-cta) a:hover {
+  color: var(--docs-body-link-hover-color);
+}
+
+/* api-page-cta.hbs is rendered twice, beside each copy of the Previous/Next links: the one under the page
+   shows on narrow screens, the one in the main column on wide ones, as the links do. */
+.leed-documentation .api-page-cta {
+  @apply xl:hidden;
+}
+
+.leed-documentation .api-main-column .api-page-cta {
+  @apply hidden xl:block;
+}

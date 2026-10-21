@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth js-focus-visible code-theme-github font-sans">
+{{!--
+    The site's master wrapper, from the Leed plugin's site-onboarding starter.
+    Layouts and pass-through pages call it as a block: {{#>site-template}\} … {{/site-template}\}.
+
+    - Colors come only from Leed's --site-* tokens, which tailwind/site/theme.css points at the
+      brand tokens (site-patterns rule 9). No palette classes here.
+    - The body is offset by the MEASURED header height, --height-header, which
+      src/static/js/site-header.js writes (site-patterns rule 12). Never a fixed margin.
+--}}
+
+<head>
+    <title>{{ title }} | {{ siteTitle }}</title>
+
+    <meta name="viewport" content="width=device-width">
+
+    {{> leed/head }}
+</head>
+<body class="flex flex-col min-h-screen antialiased text-base text-(--site-text-color) bg-(--site-bg-color)">
+{{> header }}
+
+<div class="grow mt-(--height-header)">
+{{> @partial-block}}
+</div>
+
+{{> footer }}
+</body>
+</html>

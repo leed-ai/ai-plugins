@@ -1,0 +1,26 @@
+---
+{
+    "title": "Blog",
+    "layout": "content-list.hbs",
+    "publishedAt": "list",
+    "modifiedAt": "list",
+    "pageTypeId": "###PAGE_TYPE_ID###",
+    "pagination": {
+        "data": "collections.pageTypeId-###PAGE_TYPE_ID###:paged",
+        "size": 1,
+        "alias": "list",
+        "addAllPagesToCollections": true,
+        "generatePageOnEmptyData": false,
+        "reverse": false
+    },
+    "pageId": "###NEW_SHORT_ID###",
+    "permalink": "{{ pageType this.pageTypeId 'slug' }}{{#unless list.page.last }}/page/{{ add list.page.number 1 }}{{/unless}}/index.html"
+}
+---
+
+<!-- Start blog Index Template-->
+<div class="section-content text-center object-center px-6">
+    <h1 class="mb-4 text-(--site-header-1-color)">{{ title }}</h1>
+    <p class="mt-2 text-xl text-(--site-text-color)">{{ pageType pageTypeId "description" }}</p>
+</div>
+<!-- End blog Index Template-->

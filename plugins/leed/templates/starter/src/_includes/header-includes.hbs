@@ -1,0 +1,82 @@
+{{!--
+header-includes.hbs: the site's own additions to <head>, on every page.
+
+What it is
+  Leed's head partial, `leed/head.hbs`, renders this file first in <head>,
+  before Leed's own stylesheet, metadata and scripts, on every page that
+  calls it: the pages site-template.hbs wraps, Leed's unsubscribe pages, and
+  the documentation and API pages. Those last are built on Leed's own
+  documentation layouts, which call `leed/head.hbs` themselves and are NOT
+  wrapped in site-template.hbs.
+
+Why here and not in site-template.hbs
+  A tag written in site-template.hbs reaches only the pages that template
+  wraps, so the documentation set never gets it. Written here, it reaches
+  both. That makes this the one place for anything that must be true on
+  every page of the site, docs included.
+
+Turning it on
+  Nothing to set. There is no CMS flag and no plan tier: `leed/head.hbs`
+  checks `templateExists "header-includes.hbs"`, so the file existing is what
+  enables it. Delete it and nothing breaks.
+
+What belongs here
+  - a preload for a self-hosted web font, for a family Leed does not install
+    itself (its bundled fonts need nothing here)
+  - site verification metas (Google Search Console, Bing, and the like)
+  - analytics and other site-wide scripts, deferred
+  - theme-color, the web manifest, and PNG and touch icon fallbacks
+
+What does not
+  - Tags only one kind of page needs: they go in that page type's layout.
+  - The description, canonical URL, Open Graph and Twitter cards, and the
+    SVG favicon: `leed/head.hbs` already writes them from the page and from
+    the company's settings. The favicon is the company favicon (`favicon`
+    in the page data), uploaded in the CMS under Settings, General, so never
+    add a second <link rel="icon"> for that SVG here.
+  - Anything visible: this is <head>, so markup for the page body belongs in
+    a layout or a partial.
+--}}
+
+{{!-- The browser's own chrome (the title bar on mobile, the tab strip in some
+      browsers) takes these colors. They are the page ground, --brand-bg, in
+      light and dark mode: a fully tinted bar competes with the page it
+      frames.
+
+      A meta cannot read a CSS variable, so these two values are written out
+      and must be kept in step with --brand-bg in tailwind/site/theme.css by
+      hand. Change the brand there, and change these with it. --}}
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="###THEME_COLOR_LIGHT###">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="###THEME_COLOR_DARK###">
+
+{{!-- Examples. Each is commented out, so none of them renders; uncomment and
+      fill in the one you need. A file they name must exist before the tag
+      goes live.
+
+  A self-hosted web font, for a family Leed does not install itself. Put its
+  .woff2 files in src/static/webfonts/ and declare them with @font-face in the
+  site's CSS; a preload here fetches the main one early. Never link a font
+  host instead: those URLs log every visitor.
+
+    <link rel="preload" href="/static/webfonts/<family>-regular.woff2" as="font" type="font/woff2" crossorigin>
+
+  A search engine's site verification, with the token it gives you:
+
+    <meta name="google-site-verification" content="<token>">
+
+  A script every page runs, analytics for example. `defer` keeps it off the
+  critical path; bump ?v= when a file of your own changes, since nothing
+  fingerprints it:
+
+    <script defer src="https://<analytics host>/script.js" data-domain="<your domain>"></script>
+    <script defer src="/static/js/<your-script>.js?v=1"></script>
+
+  A web manifest, and PNG icons for what the SVG favicon does not cover: older
+  browsers, and the touch icon iOS uses for a home-screen shortcut. Name your
+  files with your brand's prefix: the build deletes any leed-*.png, and
+  favicon-* and logo-* under src/static/images/ belong to the CMS.
+
+    <link rel="manifest" href="/static/<brand>.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/<brand>-icon-32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/<brand>-apple-touch-icon.png">
+--}}

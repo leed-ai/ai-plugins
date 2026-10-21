@@ -1,0 +1,28 @@
+---
+{
+  "title": "Home",
+  "publishedAt": "###HOME_PUBLISHED_AT###",
+  "modifiedAt": "###MODIFIED_AT###",
+  "pageTypeId": "###ROOT_PAGE_TYPE_ID###",
+  "pageId": "###HOME_PAGE_ID###"
+}
+---
+{{!--
+    The home page, from the Leed plugin's site-onboarding starter. A pass-through page: its own markup,
+    wrapped in the site template (site-patterns rule 8).
+
+    pageTypeId and pageId are the values the provisioned home page already had, kept so every
+    pageid: link to home stays valid. Links go by pageid: (rule 5) and buttons use the .btn system.
+--}}
+{{#>site-template}}
+
+<section class="site-hero">
+  <h1>{{ siteTitle }}</h1>
+  <p class="site-hero__lead">###TAGLINE###</p>
+  <div class="site-hero__actions">
+    <a href="pageid:###PRIMARY_PAGE_ID###" class="btn btn-primary"
+       data-reason="utm_campaign=leed&utm_source=internal&utm_medium=hero&utm_term=primary">###PRIMARY_LABEL###</a>
+  </div>
+</section>
+
+{{/site-template}}

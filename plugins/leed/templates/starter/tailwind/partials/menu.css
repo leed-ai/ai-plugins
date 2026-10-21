@@ -1,0 +1,111 @@
+/**
+ * The header and footer menus, from the Leed plugin's site-onboarding starter (site-patterns rule 1,
+ * references/menus.md). Imported into layer(components).
+ *
+ * One leed/menu/builder per menu: CSS turns the header's single list into the desktop bar and, below the
+ * breakpoint, the drawer that src/static/js/site-header.js opens with [data-open]. Desktop dropdowns open on
+ * :hover and :focus-within, so they need no script and no ready-class guard. Brand tokens only.
+ */
+
+/* Header bar. The desktop .nav-right rule lives here, before the drawer's media query, so the drawer can hide it. */
+.nav-right {
+  @apply flex items-center gap-6;
+}
+
+.menu-top {
+  @apply flex items-center gap-6;
+}
+
+.menu-top > .leed-menu__item {
+  @apply relative;
+}
+
+.menu-top > .leed-menu__item > .leed-menu__item--wrapper {
+  @apply flex items-center gap-1 py-2 font-medium no-underline;
+  color: var(--brand-fg-muted);
+}
+
+.menu-top > .leed-menu__item > .leed-menu__item--link:hover {
+  color: var(--brand-fg);
+}
+
+.menu-top .leed-menu__item--toggle::before {
+  content: "\25BE";
+}
+
+/* Dropdowns: closed until hovered or focused. submenuClass applies at every level, so nested lists are
+   scoped by level. */
+.menu-top-submenu.leed-submenu--level-1 {
+  @apply absolute left-0 top-full z-50 hidden min-w-48 gap-1 rounded-md p-2;
+  background: var(--brand-surface);
+  border: 1px solid var(--brand-border);
+}
+
+.menu-top > .leed-menu__item:hover > .leed-submenu--level-1,
+.menu-top > .leed-menu__item:focus-within > .leed-submenu--level-1 {
+  @apply grid;
+}
+
+.menu-top-submenu .leed-submenu__item > .leed-menu__item--wrapper {
+  @apply block rounded px-3 py-1.5 no-underline;
+  color: var(--brand-fg);
+}
+
+.menu-top-submenu .leed-submenu__item--link:hover {
+  background: var(--brand-surface-muted);
+}
+
+.menu-top-submenu.leed-submenu--level-2 {
+  @apply pl-3;
+}
+
+.menu-btn {
+  @apply hidden p-2;
+  color: var(--brand-fg);
+}
+
+/* Below the breakpoint the same list becomes the drawer. */
+@media (max-width: 767px) {
+  .menu-btn {
+    @apply block;
+  }
+
+  .nav-right {
+    @apply hidden w-full;
+  }
+
+  .nav-right[data-open] {
+    @apply block;
+  }
+
+  .menu-top {
+    @apply flex-col items-stretch gap-0;
+  }
+
+  .menu-top-submenu.leed-submenu--level-1 {
+    @apply static grid border-0 p-0 pl-3;
+  }
+}
+
+/* Footer: every column open, because the Footer Menu's own expanded flag is set in the CMS. */
+.menu-bottom {
+  @apply grid gap-8 sm:grid-cols-2 lg:grid-cols-4;
+}
+
+.menu-bottom > .leed-menu__item > .leed-menu__item--wrapper {
+  @apply font-semibold no-underline;
+  color: var(--brand-fg);
+}
+
+.menu-bottom-submenu {
+  @apply mt-3 grid gap-2;
+}
+
+.menu-bottom-submenu .leed-submenu__item > .leed-menu__item--wrapper {
+  @apply no-underline;
+  color: var(--brand-fg-muted);
+}
+
+.menu-bottom-submenu .leed-submenu__item--link:hover {
+  color: var(--brand-fg);
+}

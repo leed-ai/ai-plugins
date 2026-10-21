@@ -1,0 +1,227 @@
+{
+  "name": "documentation",
+  "title": "Documentation",
+  "description": "A documentation set at /docs/: a documentation page type with its left navigation menu, its search index and a welcome page as the starting page, themed by Leed's documentation configuration, with an optional one-line call to action above each page's Previous/Next links.",
+  "requires": ["cli-or-mcp"],
+  "pageType": {
+    "type": "documentation",
+    "payload": {
+      "name": "Documentation",
+      "slug": "docs",
+      "description": "Documentation pages with a left-side nav menu. Folders in the nav cannot be links.",
+      "layout": "leed-documentation.hbs",
+      "sitemapPriority": 0.7,
+      "labelSiteMapPriority": 0.5,
+      "autolink": true,
+      "noRender": false,
+      "includeInFeeds": true,
+      "autopostNewPages": false,
+      "requiredFields": {
+        "featureImage": false,
+        "form": "NotAllowed",
+        "summary": true,
+        "keywords": false
+      }
+    }
+  },
+  "placeholders": {
+    "###CTA_HREF###": "Where the call to action goes, from the answer to \"What should a reader do after a docs page?\": pageid:<pageId> for a page of the site (a published one: a pageid: link to a draft renders as plain text), or an external https:// URL. Escape it before it is written into the template: & < > \" ' as &amp; &lt; &gt; &quot; &#39;, and every { and } as &#123; and &#125;, so the answer is text and never Handlebars.",
+    "###CTA_TEXT###": "The link text, a few words, e.g. Start a free trial. Escape it before it is written into the template: & < > \" ' as &amp; &lt; &gt; &quot; &#39;, and every { and } as &#123; and &#125;, so the answer is text and never Handlebars.",
+    "###CTA_LEAD###": "One short sentence before the link, e.g. Ready to try it on your own site? Escape it before it is written into the template: & < > \" ' as &amp; &lt; &gt; &quot; &#39;, and every { and } as &#123; and &#125;, so the answer is text and never Handlebars."
+  },
+  "companyDocumentationDefaults": {
+    "layoutName": "alpha",
+    "colorTheme": "color-theme-blue",
+    "font": "font-open-sans",
+    "codeTheme": "code-theme-github",
+    "header": {
+      "button": {
+        "text": "Get started",
+        "href": "/"
+      }
+    }
+  },
+  "files": [
+    {
+      "source": "files/welcome.md",
+      "target": null,
+      "phase": "after-create"
+    }
+  ],
+  "features": {
+    "page-cta": {
+      "description": "A one-line call to action above every documentation page's Previous/Next links (a sign-up, contact or star link), and on API reference pages when the site has them. Any plan; needs the Leed CLI and the site checkout.",
+      "default": true,
+      "files": [
+        {
+          "source": "files/features/page-cta/docs-page-cta.hbs",
+          "target": "src/_includes/docs-page-cta.hbs",
+          "phase": "after-create"
+        },
+        {
+          "source": "files/features/page-cta/api-page-cta.hbs",
+          "target": "src/_includes/api-page-cta.hbs",
+          "phase": "after-create"
+        }
+      ],
+      "styles": {
+        "source": "files/features/page-cta/page-cta.css",
+        "target": "tailwind/docs/page-cta.css",
+        "importInto": "tailwind/site.config.css",
+        "import": "@import \"./docs/page-cta.css\";"
+      }
+    }
+  },
+  "steps": [
+    {
+      "id": "preflight",
+      "title": "Check what already exists",
+      "needsRepo": false,
+      "cli": [
+        "leed settings pagetype list --type documentation --json",
+        "leed settings pagetype list --slug docs --json",
+        "leed settings menu list --json",
+        "leed settings searchindex list --json",
+        "leed settings pending --json"
+      ],
+      "mcp": "list_page_types, list_menus, list_search_indexes, list_pending_changes",
+      "do": [
+        "If a page type already publishes under the slug docs: when it is a documentation type, keep its pageTypeId, skip create-page-type and resume from read-bindings. Otherwise stop and report the conflict; never create a second one.",
+        "If a menu named like pageType.payload.name already exists: when it is not the company's top or bottom menu and no documentation set uses it as its left menu, bind it by adding documentationConfiguration.menus.left = <its menuId> to the payload. When it is taken, change the payload's name to one no menu holds (Documentation 2, then 3), because the CMS names the new menu after the page type. Report which you chose.",
+        "Record which search indexes exist, so verify can tell the new one apart.",
+        "Record whether search_indexes-<companyId> is already pending, so publish-settings can say when publishing it carries someone else's search index change too.",
+        "Decide the page-cta feature. It writes repo files, so it needs the CLI and the site checkout as the working directory: over MCP, or with no checkout, turn it off and tell the user that running the recipe again from the checkout adds it. When src/_includes/docs-page-cta.hbs already exists, read ###CTA_LEAD###, ###CTA_TEXT### and ###CTA_HREF### back from it (the sentence before the link, the link text and its href, already escaped: copy them as they are) and do not ask again, so a later run that adds api-page-cta.hbs matches it. Otherwise ask \"What should a reader do after a docs page?\" unless onboarding already passed the answer: a sign-up, a contact page or a star link, and the page or URL it opens. With no answer, or when the user declines, turn the feature off; nothing is written. With an answer, record ###CTA_LEAD###, ###CTA_TEXT### and ###CTA_HREF### as placeholders says.",
+        "With the feature on, record which of src/_includes/docs-page-cta.hbs, src/_includes/api-page-cta.hbs and the feature's styles.target already exist, and whether styles.importInto already holds its styles.import line."
+      ]
+    },
+    {
+      "id": "create-page-type",
+      "title": "Create the documentation page type",
+      "needsRepo": false,
+      "cli": ["leed settings pagetype create --type documentation --from-file <payload.json> --json"],
+      "mcp": "create_page_type",
+      "do": [
+        "Write pageType.payload, with any preflight change, to a temporary JSON file outside the repo; --type is pageType.type.",
+        "This one call creates the left navigation menu (or binds the one preflight chose), the search index and the repo scaffold. Never create a menu or a search index as well.",
+        "Record data.pageTypeId."
+      ]
+    },
+    {
+      "id": "read-bindings",
+      "title": "Read the menu the set is bound to",
+      "needsRepo": false,
+      "cli": ["leed settings pagetype get <pageTypeId> --json"],
+      "mcp": "get_page_type",
+      "do": [
+        "Record documentationConfiguration.menus.left as the menuId, and documentationConfiguration.startingPage when one is already set."
+      ]
+    },
+    {
+      "id": "create-welcome-page",
+      "title": "Create the welcome page",
+      "needsRepo": false,
+      "cli": [
+        "leed page sync-state --page-type-id <pageTypeId> --json",
+        "leed page create --page-type-id <pageTypeId> --file <recipe>/files/welcome.md --json"
+      ],
+      "mcp": "list_pages, create_page_from_markdown",
+      "do": [
+        "Skip this step when startingPage is already set to a page of this set, and use that page instead.",
+        "Otherwise list the set's pages first. When one is titled Welcome or its path ends in /welcome/, a page an earlier run created before it failed, use its pageId and create nothing. Never create a second welcome page.",
+        "Only when neither holds, create the page. Record data.pageId. The CMS appends a new documentation page to the set's menu itself."
+      ]
+    },
+    {
+      "id": "add-to-menu",
+      "title": "Make sure the welcome page is in the menu",
+      "needsRepo": false,
+      "cli": [
+        "leed settings menu get <menuId> --json",
+        "leed settings menu add <menuId> --base-revision <revision> --top-level --name Welcome --href pageid:<pageId> --json"
+      ],
+      "mcp": "get_menu, add_menu_item",
+      "do": [
+        "Read the menu. Only when no item's href is pageid:<pageId>, add one at the top level, using the data.revision the read returned. Never add a second item for the same page."
+      ]
+    },
+    {
+      "id": "set-starting-page",
+      "title": "Set the starting page",
+      "needsRepo": false,
+      "cli": ["leed settings pagetype set <pageTypeId> --documentation-configuration.starting-page <pageId> --json"],
+      "mcp": "update_page_type",
+      "do": ["Skip this step when startingPage already names the page."]
+    },
+    {
+      "id": "company-defaults",
+      "title": "Fill in the company's documentation defaults",
+      "needsRepo": false,
+      "cli": ["leed settings company get --json", "leed settings company set --from-file <defaults.json> --json"],
+      "mcp": "get_company_overview, update_company_settings",
+      "do": [
+        "Read the company's documentationConfiguration. Write a patch { \"documentationConfiguration\": { … } } holding only the keys of companyDocumentationDefaults that the company has not set, header.button counted as one key. Never write menus, and never replace a value the company already has.",
+        "Skip the write when every key is already set."
+      ]
+    },
+    {
+      "id": "publish-settings",
+      "title": "Publish the settings",
+      "needsRepo": false,
+      "cli": [
+        "leed settings pending --json",
+        "leed settings publish page_type-<pageTypeId> menu-<menuId> company_settings-<companyId> search_indexes-<companyId> --json"
+      ],
+      "mcp": "list_pending_changes, publish_pending_changes",
+      "do": [
+        "Read the pending changes first and record data.companyId from that read (MCP: the company the server acts for, from get_company_overview).",
+        "The candidates are page_type-<pageTypeId>, menu-<menuId>, company_settings-<companyId> and search_indexes-<companyId>: creating the page type made its search index pending as the company's one search_indexes entry, which must be published or search on /docs/ stays empty. Publish exactly the candidates that the pending list holds, and leave out any it does not: a menu bound in preflight, or company settings company-defaults did not write, may not be pending. Never --all: other people's unpublished changes may be pending.",
+        "The search_indexes entry is one whole-file entry for the company, so publishing it also publishes any other unpublished search index change. When preflight found it already pending, tell the user so before including it.",
+        "The welcome page is a draft. Tell the user to publish it (leed page publish <pageId>, MCP publish_page_now) when its text is ready; until then the build warns that startingPage names no page in the set."
+      ]
+    },
+    {
+      "id": "write-page-cta",
+      "title": "Write the documentation page call to action",
+      "feature": "page-cta",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "Run only when preflight turned the page-cta feature on.",
+        "Copy files/features/page-cta/docs-page-cta.hbs to src/_includes/docs-page-cta.hbs, unless it exists, with ###CTA_LEAD###, ###CTA_TEXT### and ###CTA_HREF### replaced.",
+        "Copy files/features/page-cta/api-page-cta.hbs to src/_includes/api-page-cta.hbs the same way, only when the site has API reference pages: a page file under src/ whose frontmatter has an openapi object with an endpoint. Without one, skip it and tell the user that running the recipe again once API pages exist adds it. Never add a breakpoint class or an id to it: its stylesheet shows one of its two rendered copies at each width.",
+        "Copy the feature's styles.source to its styles.target, unless it exists, and append its styles.import line to styles.importInto, unless it is already there. The import stays unlayered (site-patterns rule 10)."
+      ]
+    },
+    {
+      "id": "publish-page-cta",
+      "title": "Push the call to action to staging",
+      "feature": "page-cta",
+      "needsRepo": true,
+      "cli": [
+        "leed site validate",
+        "leed site build",
+        "leed site commit --dry-run -m \"Add the documentation call to action from /leed:create documentation\" --json",
+        "leed site commit -m \"Add the documentation call to action from /leed:create documentation\"",
+        "leed site push --json"
+      ],
+      "mcp": null,
+      "do": [
+        "Run only when preflight turned the page-cta feature on. Run the site-publish workflow's validate, build, commit and push steps.",
+        "Before the real commit, run the commit with --dry-run. It commits the whole working tree, so when the files it lists include anything outside the feature's file targets, its styles.target and styles.importInto, stop and ask the user to commit or set those changes aside first; never commit them under this recipe's message.",
+        "Never skip this step on what this run wrote: validate, build and commit when the working tree holds changes; when leed site validate refuses because nothing changed, skip to the push. Always run leed site push --json, so files an earlier run wrote but never pushed reach staging."
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Check the result",
+      "needsRepo": false,
+      "cli": ["leed settings searchindex list --json", "leed settings menu list --json", "leed site validate"],
+      "mcp": "list_search_indexes, list_menus",
+      "do": [
+        "Exactly one search index lists the new pageTypeId, and exactly one menu is bound as its left menu. Report anything else as a problem; do not fix it by creating or deleting records.",
+        "Run leed site validate when the current directory is the site repo; otherwise say it was skipped."
+      ]
+    }
+  ]
+}

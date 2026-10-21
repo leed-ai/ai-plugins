@@ -1,0 +1,18 @@
+{
+  "name": "leed",
+  "owner": {
+    "name": "Leed, Inc.",
+    "url": "https://leed.ai"
+  },
+  "metadata": {
+    "description": "Official Claude plugins from Leed, Inc. for building and running Leed CMS websites."
+  },
+  "plugins": [
+    {
+      "name": "leed",
+      "source": "./plugins/leed",
+      "description": "Build, preview and publish Leed CMS websites, change CMS settings and manage assets from Claude, with the Leed CMS and documentation available over MCP when you add them.",
+      "version": "6.19.0"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+/**
+ * The site's buttons, defined once, from the Leed plugin's site-onboarding starter
+ * (site-patterns rule 3, references/buttons-and-ctas.md). Imported into layer(components).
+ * Pages use the classes and never restyle a button inline. Colors are brand tokens only.
+ *
+ *   <a href="pageid:<uuid>" class="btn btn-primary" data-reason="…">Get started</a>
+ */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 font-semibold no-underline transition-colors;
+  line-height: 1.25rem;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background: var(--brand-accent);
+  color: var(--brand-on-accent);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: var(--brand-accent-hover);
+  color: var(--brand-on-accent);
+}
+
+.btn-secondary {
+  background: var(--brand-surface);
+  color: var(--brand-fg);
+  border-color: var(--brand-border-strong);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  background: var(--brand-surface-muted);
+  color: var(--brand-fg);
+}
+
+/* Leed's form submit stacks several state labels, which inherit the body's line height and make it taller
+   than .btn. Restate .btn's line height here rather than giving forms a third button style. */
+.leed-form button .leed-form-button-label {
+  line-height: 1.25rem;
+}

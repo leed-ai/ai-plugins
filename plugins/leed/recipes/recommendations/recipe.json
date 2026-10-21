@@ -1,0 +1,166 @@
+{
+  "name": "recommendations",
+  "title": "Recommendations",
+  "description": "Leed's recommendation cards under each post: recommendations turned on for the chosen page types (the blog by default), the data-leed-recommendations slot in their layouts, the card in the site's brand, and an offline preview so the cards can be styled with leed site build --serve. Growth plan and above.",
+  "requires": ["tier:growth", "cli", "site-repo"],
+  "placeholders": {
+    "###LIST_URL###": "The path of the chosen page type's list page, its slug between slashes, e.g. /blog/. The preview reads its rows."
+  },
+  "styles": {
+    "source": "styles.css",
+    "target": "tailwind/partials/recommendations.css",
+    "importInto": "tailwind/site.config.css",
+    "import": "@import \"./partials/recommendations.css\" layer(components);"
+  },
+  "files": [
+    {
+      "source": "files/src/_includes/stub-template.hbs",
+      "target": "src/_includes/stub-template.hbs",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/src/static/js/recommendations-preview.js",
+      "target": "src/static/js/recommendations-preview.js",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/tailwind/partials/recommendations-card.css",
+      "target": "tailwind/partials/recommendations-card.css",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/snippets/recommendations-slot.hbs",
+      "target": null,
+      "phase": "snippet"
+    },
+    {
+      "source": "files/snippets/header-includes-preview.hbs",
+      "target": null,
+      "phase": "snippet"
+    },
+    {
+      "source": "files/snippets/earlier-blog-recommendations.css",
+      "target": null,
+      "phase": "snippet"
+    }
+  ],
+  "features": {},
+  "steps": [
+    {
+      "id": "preflight",
+      "title": "Check the plan and what already exists",
+      "needsRepo": true,
+      "cli": ["leed site eject --json", "leed settings pagetype list --json"],
+      "mcp": null,
+      "do": [
+        "Confirm the current directory is the site repo root, the raw-content checkout: it holds identity.json, src/ and tailwind/site.config.css. Stop if any of them is missing; leed site list --json shows where each registered site's checkout is.",
+        "Read data.tier from leed site eject --json; null counts as Free. Below Growth, stop: say that recommendations are included from the Growth plan up and the site is on <tier>, and write nothing, change no setting.",
+        "Record whether data.templates lists stub-template, and its customized value.",
+        "Ask which page types get recommendations. With no answer, use the posts page type whose slug is blog. Stop when none of the chosen page types exists, and say to run /leed:create blog first.",
+        "For each chosen page type, record its pageTypeId, its slug, its layout and whether allowRecommendations is already true. Its layout must exist as src/_layouts/<layout>; stop for a page type whose layout is not in the checkout (a documentation type renders through Leed's own layout and cannot take the slot).",
+        "Record what already exists, so later steps skip it: which layouts already hold data-leed-recommendations, whether src/_includes/header-includes.hbs exists and already references recommendations-preview.js, whether each files[] target with a target already exists, whether any stylesheet under tailwind/ other than this recipe's own tailwind/partials/recommendations-card.css already defines a .page-stub rule (a site from the earlier starter styles its card in tailwind/partials/site.css; the recipe's own file, left by a run that stopped partway, does not count), whether styles.target exists, and whether styles.importInto already holds the styles.import line."
+      ]
+    },
+    {
+      "id": "allow-recommendations",
+      "title": "Turn recommendations on for the chosen page types",
+      "needsRepo": false,
+      "cli": ["leed settings pagetype set <pageTypeId> --allow-recommendations true --json"],
+      "mcp": "update_page_type",
+      "do": [
+        "For each chosen page type whose allowRecommendations is not already true, set it. Skip one that is already true.",
+        "Record the pending id named in next (page_type-<pageTypeId>) for each page type changed."
+      ]
+    },
+    {
+      "id": "insert-slot",
+      "title": "Put the recommendation slot in each layout",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "For each chosen page type's layout that already holds data-leed-recommendations, leave that element where it is and bring it up to the snippet, in place: when its opening tag has no data-preview-recommendations, add data-preview-recommendations=\"/<slug>/\" (the page type's slug between slashes), and when its first <h2> has no class, add class=\"recommendations__heading\" so the heading spans the grid. A blog made by the earlier blog recipe has <section data-leed-recommendations class=\"recommendations\"> with a bare <h2>Read next</h2>; without the attribute the offline preview has no list to read and shows nothing. Change nothing else in the layout, and skip a layout whose element already has both.",
+        "For a layout without data-leed-recommendations, read files/snippets/recommendations-slot.hbs, replace ###LIST_URL### with /<slug>/ (the page type's slug between slashes), and insert it, in place, directly before the line holding the {{!-- leed:after-content marker, indented like that line. A {{> cta }} that /leed:create cta already put before the marker so stays above the recommendations.",
+        "When the layout has no marker, because the user changed the file, insert the slot directly after the line holding {{{ process content }}}, unless a CTA follows that line: when a later line holds {{> cta or data-leed-cta (the CTA /leed:create cta put there when it found no marker either), insert the slot directly after that line instead, so the CTA stays above the recommendations whichever recipe ran first. Tell the user where it went. When the layout has neither the marker nor {{{ process content }}}, leave that layout alone and report it. Never rewrite the whole file, and never overwrite it."
+      ]
+    },
+    {
+      "id": "write-files",
+      "title": "Write the card, the preview script and the stylesheet when missing",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "Copy files/src/_includes/stub-template.hbs to src/_includes/stub-template.hbs only when preflight found stub-template listed with customized false, and the target does not exist (site-patterns rule 13). A site that has already customized its card keeps it.",
+        "Copy files/src/static/js/recommendations-preview.js to its target, unless it exists.",
+        "Copy styles.source to styles.target, unless it exists.",
+        "Append the styles.import line to styles.importInto, unless it is already there.",
+        "When preflight found no .page-stub rule under tailwind/, copy files/tailwind/partials/recommendations-card.css to tailwind/partials/recommendations-card.css, unless it exists, and append @import \"./partials/recommendations-card.css\" layer(components); to styles.importInto, unless it is already there. When the site already styles .page-stub, write neither: the card keeps the rules it has, and the copied rules, imported later in the same layer, would replace its brand colors. Tell the user the card keeps its own styles.",
+        "When tailwind/layouts/blog.css (written by the earlier blog recipe) still holds its .recommendations rule exactly as files/snippets/earlier-blog-recommendations.css has it, delete that block: styles.target replaces it, and the two together would set the slot's grid twice. When that file holds a .recommendations rule that differs, keep it and tell the user it now overlaps styles.target."
+      ]
+    },
+    {
+      "id": "preview-tag",
+      "title": "Load the preview script under leed site build --serve only",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "Skip this step when src/_includes/header-includes.hbs already references recommendations-preview.js.",
+        "When the file exists, append files/snippets/header-includes-preview.hbs to its end, once. The <script> tag stays inside the {{#if this.leedSiteEnv.env.serverMode}} block the snippet carries: never move it out, so a normal, preview or deployed build never references the script (site-patterns rule 14 puts site-wide scripts in this file).",
+        "When the site has no header-includes.hbs (sites provisioned before the CLI shipped it), write it holding only the snippet."
+      ]
+    },
+    {
+      "id": "list-attributes",
+      "title": "Give each list row the preview's attributes",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "The preview reads the rows of each chosen page type's list page. Skip a list partial whose row already has data-preview-post, as the current blog recipe's src/_includes/contentCards.hbs does. A contentCards.hbs written by the earlier blog recipe has none, so it gets them like any other.",
+        "For each list partial still without them, find the element in its list partial that each row renders as (the <a> around one entry) and add, in place: data-preview-post=\"{{ this.url }}\" data-preview-title=\"{{ this.data.title }}\" data-preview-summary=\"{{ this.data.summary }}\" data-preview-image=\"{{ this.data.featureImage.src }}\" data-preview-date=\"{{#date 'iso' }}{{ this.data.publishedAt }}{{/date}}\". Report each file changed. When no row element can be told apart, report it and leave the file alone: the cards still work live, only the offline preview has nothing to show."
+      ]
+    },
+    {
+      "id": "publish",
+      "title": "Push the templates to staging",
+      "needsRepo": true,
+      "cli": [
+        "leed site validate",
+        "leed site build",
+        "leed site commit --dry-run -m \"Add recommendations from /leed:create recommendations\" --json",
+        "leed site commit -m \"Add recommendations from /leed:create recommendations\"",
+        "leed site push --json"
+      ],
+      "mcp": null,
+      "do": [
+        "Run the site-publish workflow's validate, build, commit and push steps.",
+        "Before the real commit, run the commit with --dry-run. It commits the whole working tree, so when the files it lists include anything outside the layouts, the list partials, src/_includes/header-includes.hbs, the files[] targets, styles.target, styles.importInto and tailwind/layouts/blog.css (when write-files removed the earlier blog recipe's .recommendations block from it) that this recipe wrote or changed, stop and ask the user to commit or set those changes aside first; never commit them under this recipe's message.",
+        "Never skip this step on what this run wrote: an earlier run may have written the files and then failed before its push. Validate, build and commit when the working tree holds changes; when leed site validate refuses because nothing changed, there is nothing to commit, so skip to the push. Always run leed site push --json: with nothing ahead of staging it succeeds with pushed false, and with commits an earlier run made it sends them."
+      ]
+    },
+    {
+      "id": "publish-settings",
+      "title": "Publish the page types",
+      "needsRepo": false,
+      "cli": ["leed settings pending --json", "leed settings publish page_type-<pageTypeId> --json"],
+      "mcp": "list_pending_changes, publish_pending_changes",
+      "do": [
+        "Read the pending changes first. Publish page_type-<pageTypeId> for each chosen page type the list holds, by id; leave out any it does not, since that page type is already published. Never --all: other people's unpublished changes may be pending."
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Check the result",
+      "needsRepo": true,
+      "cli": ["leed settings pagetype get <pageTypeId> --json", "leed site validate"],
+      "mcp": "get_page_type",
+      "do": [
+        "Each chosen page type has allowRecommendations true. Report one that does not.",
+        "Tell the user to run leed site build --serve and open a post on localhost to style the cards offline: the preview answers the engine with three posts from the list page. On another machine's address it does nothing, and live cards appear once the engine has posts to recommend.",
+        "Hand over to the site-publish skill's staging verification for one post, which runs site-audit on the changed files when that skill is installed."
+      ]
+    }
+  ]
+}

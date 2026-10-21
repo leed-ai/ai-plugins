@@ -1,0 +1,155 @@
+{
+  "name": "starter",
+  "description": "Site-wide starter templates for a new Leed site: the site template, the site-wide <head> tags in header-includes.hbs, a header and footer on Leed's menu builder, the brand theme with every --site-* and --docs-* token wired, the button system, and a home page. /leed:site-onboarding copies them; see its references/starter-templates.md.",
+  "files": [
+    {
+      "source": "src/_includes/site-template.hbs",
+      "target": "src/_includes/site-template.hbs",
+      "kind": "provisioned",
+      "placeholders": [],
+      "note": "The master wrapper: body offset by the measured --height-header, colors from --site-* tokens."
+    },
+    {
+      "source": "src/_includes/header-includes.hbs",
+      "target": "src/_includes/header-includes.hbs",
+      "kind": "provisioned",
+      "placeholders": ["###THEME_COLOR_LIGHT###", "###THEME_COLOR_DARK###"],
+      "note": "Site-wide <head> tags on every page, documentation pages included (site-patterns rule 14): the light and dark theme-color, with commented-out examples. Sites provisioned before the CLI shipped it lack the file, and it is then written as new."
+    },
+    {
+      "source": "src/_includes/header.hbs",
+      "target": "src/_includes/header.hbs",
+      "kind": "provisioned",
+      "dependsOn": ["src/static/js/site-header.js", "tailwind/partials/menu.css", "tailwind/partials/site.css"],
+      "placeholders": ["###HOME_PAGE_ID###"],
+      "note": "One leed/menu/builder for the Header Menu, bar and drawer."
+    },
+    {
+      "source": "src/_includes/footer.hbs",
+      "target": "src/_includes/footer.hbs",
+      "kind": "provisioned",
+      "dependsOn": ["tailwind/partials/menu.css", "tailwind/partials/site.css"],
+      "placeholders": [],
+      "note": "One leed/menu/builder for the Footer Menu."
+    },
+    {
+      "source": "src/index.hbs",
+      "target": "src/index.hbs",
+      "kind": "provisioned",
+      "dependsOn": ["tailwind/site/buttons.css", "tailwind/partials/site.css"],
+      "placeholders": [
+        "###HOME_PUBLISHED_AT###",
+        "###MODIFIED_AT###",
+        "###ROOT_PAGE_TYPE_ID###",
+        "###HOME_PAGE_ID###",
+        "###TAGLINE###",
+        "###PRIMARY_PAGE_ID###",
+        "###PRIMARY_LABEL###"
+      ],
+      "optionalElements": ["site-hero__actions"],
+      "note": "The home page. Keeps the provisioned page's pageTypeId, pageId and publishedAt. Its site-hero__actions element is deleted when no section page is published yet."
+    },
+    {
+      "source": "tailwind/site.config.css",
+      "target": "tailwind/site.config.css",
+      "kind": "merge",
+      "placeholders": [],
+      "note": "Never copied: the lines in imports are added to the existing file, each once."
+    },
+    {
+      "source": "tailwind/site/theme.css",
+      "target": "tailwind/site/theme.css",
+      "kind": "new",
+      "placeholders": ["###FONT_CLASS###"],
+      "note": "Brand tokens, Leed's --site-*, form, reading-progress and alert tokens, the @theme inline names, and the site font (--font-sans)."
+    },
+    {
+      "source": "tailwind/site/buttons.css",
+      "target": "tailwind/site/buttons.css",
+      "kind": "new",
+      "placeholders": [],
+      "note": "The .btn system."
+    },
+    {
+      "source": "tailwind/partials/menu.css",
+      "target": "tailwind/partials/menu.css",
+      "kind": "new",
+      "placeholders": [],
+      "note": "The header bar and drawer, and the footer columns."
+    },
+    {
+      "source": "tailwind/partials/site.css",
+      "target": "tailwind/partials/site.css",
+      "kind": "new",
+      "placeholders": [],
+      "note": "Header, footer and hero."
+    },
+    {
+      "source": "tailwind/docs/color-theme-site.css",
+      "target": "tailwind/docs/color-theme-site.css",
+      "kind": "new",
+      "requires": "starter",
+      "placeholders": [],
+      "note": "The documentation theme color-theme-site. Written only when the company may set a custom theme name (Starter or above)."
+    },
+    {
+      "source": "src/static/js/site-header.js",
+      "target": "src/static/js/site-header.js",
+      "kind": "new",
+      "placeholders": [],
+      "note": "Measures the fixed header and opens the drawer."
+    },
+    {
+      "source": "src/_includes/docs-header.hbs",
+      "target": "src/_includes/docs-header.hbs",
+      "kind": "eject",
+      "eject": "docs-header",
+      "dependsOn": ["src/_includes/header.hbs"],
+      "placeholders": [],
+      "note": "Reuses the site header on documentation pages. Starter or above."
+    },
+    {
+      "source": "src/_includes/docs-footer.hbs",
+      "target": "src/_includes/docs-footer.hbs",
+      "kind": "eject",
+      "eject": "docs-footer",
+      "dependsOn": ["src/_includes/footer.hbs"],
+      "placeholders": [],
+      "note": "Reuses the site footer on documentation pages. Starter or above."
+    }
+  ],
+  "imports": [
+    { "line": "@import \"./site/theme.css\";" },
+    { "line": "@import \"./site/base.css\" layer(base);" },
+    { "line": "@import \"./site/buttons.css\" layer(components);" },
+    { "line": "@import \"./partials/menu.css\" layer(components);" },
+    { "line": "@import \"./partials/site.css\" layer(components);" },
+    { "line": "@import \"./docs/color-theme-site.css\";", "requires": "tailwind/docs/color-theme-site.css" }
+  ],
+  "placeholders": {
+    "###THEME_COLOR_LIGHT###": "The light value of --brand-bg, exactly as it is written in the light :root block of tailwind/site/theme.css once the interview's colors are in, e.g. #fafafa. A meta cannot read a CSS variable, so header-includes.hbs repeats the value.",
+    "###THEME_COLOR_DARK###": "The dark value of --brand-bg, exactly as it is written in the prefers-color-scheme: dark block of tailwind/site/theme.css, e.g. #0b0b0f.",
+    "###FONT_CLASS###": "The site font's class, one of fonts below, e.g. font-inter. tailwind/site/theme.css sets --font-sans: var(--font-inter) from it, the one place the site font is configured, and site-template.hbs applies it with font-sans. The same value goes in documentationConfiguration.font.",
+    "###HOME_PAGE_ID###": "The pageId in the frontmatter of the site's current src/index.hbs.",
+    "###HOME_PUBLISHED_AT###": "The publishedAt in the frontmatter of the site's current src/index.hbs.",
+    "###MODIFIED_AT###": "The current time, as an ISO 8601 UTC timestamp.",
+    "###ROOT_PAGE_TYPE_ID###": "The pageTypeId in the frontmatter of the site's current src/index.hbs.",
+    "###TAGLINE###": "One sentence from the interview saying what the business does, HTML-escaped.",
+    "###PRIMARY_PAGE_ID###": "The pageId of the section page the hero button opens, only when that page is PUBLISHED: Leed replaces a pageid: link to a draft with a plain span, so the button would vanish. With no published section page, delete the whole site-hero__actions element instead.",
+    "###PRIMARY_LABEL###": "The hero button's text, e.g. the section page's title."
+  },
+  "brandTokens": [
+    "--brand-bg",
+    "--brand-surface",
+    "--brand-surface-muted",
+    "--brand-fg",
+    "--brand-fg-muted",
+    "--brand-border",
+    "--brand-border-strong",
+    "--brand-accent",
+    "--brand-accent-hover",
+    "--brand-accent-muted",
+    "--brand-on-accent"
+  ],
+  "fonts": ["font-inter", "font-open-sans", "font-noto-sans", "font-geist", "font-geist-mono", "font-jetbrains-mono"]
+}

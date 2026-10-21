@@ -1,0 +1,35 @@
+---
+{
+    "title": "Articles by",
+    "layout": "content-list.hbs",
+    "publishedAt": "list",
+    "modifiedAt": "list",
+    "pageTypeId": "###PAGE_TYPE_ID###",
+    "pagination": {
+        "data": "collections.pageTypeId-###PAGE_TYPE_ID###:authors",
+        "size": 1,
+        "alias": "list",
+        "addAllPagesToCollections": true,
+        "generatePageOnEmptyData": false,
+        "reverse": false
+    },
+    "pageId": "###NEW_SHORT_ID###",
+    "permalink": "{{ pageType this.pageTypeId 'slug' }}/author/{{ user list.name 'slug' }}/index.html"
+}
+---
+
+<!-- Start Author Template-->
+{{#with (user list.name) }}
+
+<div class="section-content text-center object-center px-6">
+    <h1 class="mb-4">{{ ../title }} {{ fullName }}</h1>
+    <div class="flex justify-center">
+        {{#Image image "profile" }}alt="Profile picture of {{ fullName }}"
+            class="my-4 w-48 rounded-2xl sm:w-1/2 md:w-2/3 lg:w-full max-w-lg"
+        {{/Image}}
+    </div>
+    <p class="mt-2 text-left">{{{ biography }}}</p>
+</div>
+
+{{/with}}
+<!-- End Author Template-->

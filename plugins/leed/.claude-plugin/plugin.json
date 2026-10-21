@@ -1,0 +1,23 @@
+{
+  "name": "leed",
+  "version": "6.19.0",
+  "description": "Build, preview and publish Leed CMS websites, change CMS settings and manage assets from Claude, with the Leed CMS and documentation available over MCP when you add them.",
+  "author": {
+    "name": "Leed, Inc.",
+    "url": "https://leed.ai"
+  },
+  "homepage": "https://leed.ai",
+  "repository": "https://github.com/leed-ai/ai-plugins",
+  "license": "LicenseRef-Leed-EULA",
+  "keywords": [
+    "leed",
+    "cms",
+    "website",
+    "static-site",
+    "handlebars",
+    "tailwind",
+    "publishing",
+    "mcp"
+  ],
+  "icon": "./.claude-plugin/icon.png"
+}

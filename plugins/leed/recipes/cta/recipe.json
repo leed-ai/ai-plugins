@@ -1,0 +1,108 @@
+{
+  "name": "cta",
+  "title": "Call to action",
+  "description": "Leed's CMS-managed call to action: a cta.hbs partial holding the data-leed-cta slot, placed in the chosen layouts (the blog's by default) and on the home page, so a CTA made in the CMS appears there without a republish. Growth plan and above.",
+  "requires": ["tier:growth", "cli", "site-repo"],
+  "styles": {
+    "source": "styles.css",
+    "target": "tailwind/partials/cta.css",
+    "importInto": "tailwind/site.config.css",
+    "import": "@import \"./partials/cta.css\" layer(components);"
+  },
+  "files": [
+    {
+      "source": "files/src/_includes/cta.hbs",
+      "target": "src/_includes/cta.hbs",
+      "phase": "before-create"
+    },
+    {
+      "source": "files/snippets/docs-page-cta-slot.hbs",
+      "target": null,
+      "phase": "snippet"
+    }
+  ],
+  "features": {},
+  "steps": [
+    {
+      "id": "preflight",
+      "title": "Check the plan and what already exists",
+      "needsRepo": true,
+      "cli": ["leed site eject --json", "leed settings pagetype list --json"],
+      "mcp": null,
+      "do": [
+        "Confirm the current directory is the site repo root, the raw-content checkout: it holds identity.json, src/ and tailwind/site.config.css. Stop if any of them is missing; leed site list --json shows where each registered site's checkout is.",
+        "Read data.tier from leed site eject --json; null counts as Free. Below Growth, stop: say that dynamic calls to action are included from the Growth plan up and the site is on <tier>, and write nothing.",
+        "Ask which layouts get the CTA. With no answer, use the layout of the posts page type whose slug is blog, when there is one. The home page, src/index.hbs, always gets it. Every chosen layout must exist as src/_layouts/<layout>; a documentation type renders through Leed's own layout and cannot take the slot.",
+        "Record what already exists, so later steps skip it: which chosen layouts and whether src/index.hbs already hold data-leed-cta or {{> cta, whether src/_includes/cta.hbs and styles.target exist, and whether styles.importInto already holds the styles.import line.",
+        "Record whether src/_includes/docs-page-cta.hbs exists and whether it already holds data-leed-cta. When it exists without one, ask whether its call to action should become CMS-managed; with no answer it stays static."
+      ]
+    },
+    {
+      "id": "write-files",
+      "title": "Write the CTA partial and its stylesheet when missing",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "Copy files/src/_includes/cta.hbs to src/_includes/cta.hbs, unless it exists.",
+        "Copy styles.source to styles.target, unless it exists.",
+        "Append the styles.import line to styles.importInto, unless it is already there."
+      ]
+    },
+    {
+      "id": "insert-slot",
+      "title": "Put the CTA in each layout and on the home page",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "For each chosen layout: skip it when it already holds data-leed-cta or {{> cta. Otherwise insert {{> cta }} on its own line, in place, indented like the line it goes before: directly before the recommendation slot's header comment (the line holding {{!-- Leed's recommendation cards) when /leed:create recommendations already put one there, otherwise directly before the line holding the {{!-- leed:after-content marker. Either way the CTA comes first and the recommendations after it, whichever recipe ran first.",
+        "When the layout has neither, because the user changed the file, insert it directly after the line holding {{{ process content }}} and tell the user where it went. When it has none of the three, leave that layout alone and report it.",
+        "In src/index.hbs, unless it already holds data-leed-cta or {{> cta, insert {{> cta }} on its own line directly before the closing {{/site-template}}. When there is no {{/site-template}}, leave the file alone and report it.",
+        "Never rewrite a whole file, and never overwrite one."
+      ]
+    },
+    {
+      "id": "docs-cta",
+      "title": "Make the documentation call to action CMS-managed, when asked",
+      "needsRepo": true,
+      "cli": [],
+      "mcp": null,
+      "do": [
+        "Skip this step unless src/_includes/docs-page-cta.hbs exists, holds no data-leed-cta, and the user said yes in preflight. Otherwise it stays static, as it is on any plan.",
+        "Insert files/snippets/docs-page-cta-slot.hbs, once, on the lines directly after the closing </aside> of docs-page-cta.hbs, as its sibling and never inside it: the static line stays, and the CMS's CTA follows it outside the aside, so it is not announced under the aside's aria-label and the aside's p and a rules in tailwind/docs/page-cta.css do not restyle what its author wrote.",
+        "Never add the slot to api-page-cta.hbs: Leed renders that partial twice on an API page, which would fetch and show the CTA twice."
+      ]
+    },
+    {
+      "id": "publish",
+      "title": "Push the templates to staging",
+      "needsRepo": true,
+      "cli": [
+        "leed site validate",
+        "leed site build",
+        "leed site commit --dry-run -m \"Add the CMS-managed CTA from /leed:create cta\" --json",
+        "leed site commit -m \"Add the CMS-managed CTA from /leed:create cta\"",
+        "leed site push --json"
+      ],
+      "mcp": null,
+      "do": [
+        "Run the site-publish workflow's validate, build, commit and push steps.",
+        "Before the real commit, run the commit with --dry-run. It commits the whole working tree, so when the files it lists include anything outside the layouts, src/index.hbs, src/_includes/docs-page-cta.hbs, src/_includes/cta.hbs, styles.target and styles.importInto that this recipe wrote or changed, stop and ask the user to commit or set those changes aside first; never commit them under this recipe's message.",
+        "Never skip this step on what this run wrote: an earlier run may have written the files and then failed before its push. Validate, build and commit when the working tree holds changes; when leed site validate refuses because nothing changed, there is nothing to commit, so skip to the push. Always run leed site push --json: with nothing ahead of staging it succeeds with pushed false, and with commits an earlier run made it sends them."
+      ]
+    },
+    {
+      "id": "verify",
+      "title": "Check the result and point to the first CTA",
+      "needsRepo": true,
+      "cli": ["leed site validate"],
+      "mcp": null,
+      "do": [
+        "Run leed site validate and report any problem.",
+        "Tell the user the slots are in place but stay empty until a CTA matches: create the first one in the CMS under Settings, Dynamic CTAs, and mark it Active with the page types (and, optionally, labels) it is for. It appears on the site without a republish.",
+        "Hand over to the site-publish skill's staging verification for the home page and one post, which runs site-audit on the changed files when that skill is installed."
+      ]
+    }
+  ]
+}

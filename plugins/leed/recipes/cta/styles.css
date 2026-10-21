@@ -1,0 +1,10 @@
+/**
+ * CTA styles, from /leed:create cta (a Growth feature).
+ * Imported into layer(components) from tailwind/site.config.css.
+ * Colors, when a CTA needs any, read only Leed's --site-* tokens (site-patterns rule 9).
+ */
+
+/* The element Leed appends the matching CTA into. It stays empty, and so takes no height, when none matches. */
+.site-cta {
+  @apply mx-auto max-w-4xl px-4 sm:px-6;
+}

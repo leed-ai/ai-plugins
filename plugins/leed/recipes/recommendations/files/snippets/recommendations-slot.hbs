@@ -1,0 +1,16 @@
+{{!-- Leed's recommendation cards, from /leed:create recommendations (site-patterns rule 3). A Growth feature.
+
+     data-leed-recommendations goes on the wrapper, heading and all. That is the whole API: no helper call, no
+     id, no inline script. The engine appends its cards after whatever the element already holds, so the heading
+     stays above them, and when there is nothing to recommend it hides this element, which takes the heading
+     with it. One element receiving both the heading and the cards means the grid is declared here and the
+     heading spans it: see .recommendations in tailwind/partials/recommendations.css.
+
+     data-preview-recommendations is a local development aid, not a production feature: it names the list page
+     whose rows src/static/js/recommendations-preview.js reads to answer the engine's own request with three real
+     posts, so the cards can be seen while they are being built. That script is emitted only by
+     `leed site build --serve` and checks the hostname on top of that, so a deployed page never loads it and only
+     the engine writes here. --}}
+<section class="recommendations" data-leed-recommendations data-preview-recommendations="###LIST_URL###">
+  <h2 class="recommendations__heading">Read next</h2>
+</section>

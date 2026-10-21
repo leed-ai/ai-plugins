@@ -1,0 +1,27 @@
+---
+{
+    "title": "Blog Topic List",
+    "layout": "content-list.hbs",
+    "publishedAt": "list",
+    "modifiedAt": "list",
+    "pageTypeId": "###PAGE_TYPE_ID###",
+    "pagination": {
+        "data": "collections.pageTypeId-###PAGE_TYPE_ID###:labels",
+        "size": 1,
+        "alias": "list",
+        "addAllPagesToCollections": true,
+        "generatePageOnEmptyData": false,
+        "reverse": false
+    },
+    "pageId": "###NEW_SHORT_ID###",
+    "permalink": "{{ pageType this.pageTypeId 'slug' }}/###SEPARATOR###/{{ label list.name 'slug' }}{{#unless list.page.last}}/page/{{ add list.page.number 1 }}{{/unless}}/index.html"
+}
+---
+
+<!-- Start blog Label Template-->
+<div class="section-content text-center object-center px-6">
+    <p class="pt-1 mb-1 text-center justify-center font-semibold uppercase">{{label list.name 'name'}}</p>
+    <h1 class="mb-4">{{ title }}</h1>
+    <p class="mt-2 text-xl">{{ label list.name "description" }}</p>
+</div>
+<!-- End blog Label Template-->

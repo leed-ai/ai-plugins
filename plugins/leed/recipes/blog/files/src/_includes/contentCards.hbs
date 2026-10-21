@@ -1,0 +1,41 @@
+<!-- Start Content Cards -->
+<div class="mt-12 mx-auto grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+    {{#each (reverse @root/list.pageData) }}
+    <!-- Begin Content Card -->
+    {{!-- The data-preview-* attributes are inert: they are read only by /leed:create recommendations' offline
+          preview (recommendations-preview.js), under leed site build --serve, to stand in for the engine. --}}
+    <a href="{{ this.url }}" data-preview-post="{{ this.url }}" data-preview-title="{{ this.data.title }}"
+       data-preview-summary="{{ this.data.summary }}" data-preview-image="{{ this.data.featureImage.src }}"
+       data-preview-date="{{#date 'iso' }}{{ this.data.publishedAt }}{{/date}}">
+        <div class="flex flex-col h-full clickable-item-card rounded-none border-(--site-border-color) border-b-2 border-x-0 border-t-0 dark:border-b sm:rounded-xl sm:border-2 sm:dark:border">
+            <div class="h-48 max-w-full">
+                {{#FeatureImage}}class="h-48 w-full rounded-t-lg object-cover" sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" loading="lazy"{{/FeatureImage}}
+            </div>
+            <div class="flex-1 px-6 py-4 sm:px-4 flex flex-col">
+                <div class="flex-1 label-heading uppercase">
+                    <ul class="flex-1 clipped-label-list text-sm flex-wrap">
+                    {{#Labels this true}}
+                        <li>{{this.name }}</li>
+                    {{/Labels}}
+                    </ul>
+                </div>
+                <p class="text-xl font-semibold text-(--site-text-color)">{{this.data.title}}</p>
+                <div class="mt-2 flex text-sm font-medium items-center">
+                    <ul class="dot-separated-list">
+                        <li>
+                            <time datetime="{{#date 'iso' }}{{ this.data.publishedAt }}{{/date}}">
+                                {{#date "MMMM D, YYYY" this }}{{ this.data.publishedAt }}{{/date}}
+                            </time>
+                        </li>
+                        {{#if this.data.wordCount }}
+                            <li class="flex flex-wrap items-center"><i class="mx-1 fa-regular fa-clock"></i>&nbsp;{{ readingTime }} min read</li>
+                        {{/if}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </a>
+    <!-- End Content Card -->
+    {{/each}}
+</div>
+<!-- End Content Cards -->

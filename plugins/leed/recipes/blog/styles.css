@@ -1,0 +1,49 @@
+/**
+ * Blog layout styles, from the Leed blog recipe (/leed:create blog).
+ * Imported into layer(components) from tailwind/site.config.css.
+ * Colors read only Leed's --site-* and --form-* tokens, which the site's theme points at its brand tokens.
+ */
+#blog-copy {
+  li,
+  li > p,
+  ul,
+  ol {
+    @apply my-1;
+  }
+
+  p {
+    @apply my-2;
+  }
+
+  h2 {
+    @apply mt-10;
+  }
+
+  h3 {
+    @apply mt-6;
+  }
+
+  img {
+    @apply mx-auto;
+  }
+
+  div:has(> iframe[data-assetid]) {
+    @apply border border-(--site-border-color) mt-5 mb-8;
+  }
+
+  div > iframe[data-assetid] {
+    @apply aspect-video;
+  }
+}
+
+.dot-separated-list {
+  @apply flex flex-wrap list-none;
+}
+
+.dot-separated-list > li:not(:last-child)::after {
+  @apply font-bold w-1 ml-1.5 mr-1 content-["\00B7"];
+}
+
+#content-list {
+  @apply pb-24;
+}

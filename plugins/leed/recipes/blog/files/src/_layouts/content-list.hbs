@@ -1,0 +1,18 @@
+{{#>site-template}}
+
+<!-- Start Content List Layout-->
+<main class="relative mt-8 mx-0 sm:mx-4 md:mx-8">
+    <section id="content-list">
+
+        {{!-- This is the content from the page referencing this template  --}}
+        {{{ content }}}
+
+        {{> contentCards }}
+
+        {{> pagination }}
+
+    </section>
+</main>
+<!-- End Content List Layout-->
+
+{{/site-template}}

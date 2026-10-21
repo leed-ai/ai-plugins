@@ -1,0 +1,11 @@
+{{!--
+    The documentation header, from the Leed plugin's site-onboarding starter: the site's own
+    header, reused, so marketing and docs pages share one navigation (site-patterns rule 1).
+
+    Leed renders this file inside its positioned, measured #docs-header-wrapper, and only when the
+    plan is Starter or above (leed/docs/header/chrome.hbs). It is written only when
+    `leed site eject --json` lists docs-header for this site (rule 13). docs=true tells the
+    header not to fix or measure itself here: Leed's documentation script owns --height-header
+    on docs pages (rule 12). showDocsSearch adds Leed's documentation search (rule 4).
+--}}
+{{> header docs=true showDocsSearch=true }}
