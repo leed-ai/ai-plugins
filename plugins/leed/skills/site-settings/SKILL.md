@@ -10,7 +10,7 @@ You read and change the CMS settings a site is built from, using `leed settings`
 ## When to Use It
 
 - A setting needs changing: the site title, timezone, date format, reading speed, social accounts, the documentation layout, fonts, themes or menus.
-- A **page type** must be created or edited — a documentation set, an api set, a posts set — including its slug, layout, labels or documentation configuration.
+- A **page type** must be created or edited — a documentation set, an api set, a posts set, an internal set — including its slug, layout, labels or documentation configuration.
 - A **label** must be created or edited, including making it a series.
 - An **autolink** must be added, retargeted, reordered or deleted.
 - A **search index** must be created or repointed at a different set of page types. Creating a documentation or api page type already makes one named after it, so reach for this only for a second index or one spanning several sets.
@@ -39,7 +39,7 @@ Do **not** use it for template or content files. Layouts, partials, CSS and mark
 ```bash
 leed settings pagetype list [--type <kind>] [--label <id>] [--slug <slug>] [--needs-publish]
 leed settings pagetype get <pageTypeId>
-leed settings pagetype create --type <documentation|api|posts> [field flags] [--clear <field>] [--from-file <path>]
+leed settings pagetype create --type <documentation|api|posts|internal> [field flags] [--clear <field>] [--from-file <path>]
 leed settings pagetype set <pageTypeId> [field flags] [--clear <field>] [--from-file <path>]
 
 leed settings label list [--is-series true|false] [--series <kind>] [--visible true|false] [--slug <slug>] [--needs-publish]
@@ -92,6 +92,8 @@ leed settings brokenlinks list
 ```
 
 **A posts page type's `layout` defaults to `empty.hbs` and must otherwise already exist.** `pagetype create` without `--layout` stores `empty.hbs`, and the CMS writes `src/_layouts/empty.hbs` (exactly `{{{ process content }}}`) and a `src/<slug>-index.hbs` list page when the repo lacks them. With `--layout <name>` it scaffolds neither: the layout must already be a file under `src/_layouts/` on the site repo's `staging` branch, or the create is refused with 400 naming the layout. `pagetype set --layout` is held to the same rule whenever it changes the stored value, `empty.hbs` included. Documentation and api types always use the shared docs layout and are not checked. Add the layout to the repo first (`leed site commit`, then `leed site push`), then point the page type at it. `leed site validate` checks every page type against the checkout the same way and fails naming each page type whose layout is missing. New sites start with only the Root page type; add a blog with `/leed:create blog` or a documentation set with `/leed:create documentation` in Claude, which create the page type, its layouts or menu and search index, and the starter templates in one step.
+
+**An internal page type holds content a team writes and organizes like documentation but that is never published.** Use one for a handbook, runbooks, policies or anything else that must never reach the site. Create it with `--type internal` and only a name and a slug: every other setting is fixed by the CMS, the slug is stored as `internal/<slug>`, and a navigation menu with the same name is created and bound to it, with no search index. It needs the Growth plan or above, and is refused with `upgrade_required` otherwise. Nothing about an internal set ever reaches the site: its pages, page type and menu are never written to the site repo, never appear in pending changes, and never show up in public search or the docs MCP. Its pages cannot be published or scheduled (`internal_page_not_publishable`). A revision is **locked** instead, with the `lock_page` tool, and a locked page is changed by putting it back into revision. Find internal content with the `search_internal` tool. Never create files for an internal set in the site checkout.
 
 **`searchindex` has no `delete` and no `--clear`.** The API has no delete route — removing an index is done in the CMS — and no field of a search index is nullable. `--page-type-ids` takes a JSON array and **replaces** the stored list rather than appending to it, so read the current one with `get` first.
 
