@@ -104,7 +104,9 @@ Constants that never change with the theme (a font, a fixed brand color used for
 
 ## Documentation: `@utility color-theme-<name>`
 
-A documentation set's color theme is chosen in its CMS configuration. A site theme for it is an `@utility` named after that theme, setting `--docs-*` names to brand tokens:
+A documentation set's color theme is chosen in its CMS configuration. A site theme for it is an `@utility` named after that theme, setting `--docs-*` names to brand tokens.
+
+**Name a site theme for the company: `color-theme-<shortCompanyName>`**, for example `color-theme-row64` for Row64. Take the company's name from `leed settings company get --json`, lowercase it, drop everything outside `[a-z0-9]` and cut it to 32 characters, the most the CMS accepts after the prefix. Read the page type's `documentationConfiguration.colorTheme` first (`src/<slug>/<slug>.11tydata.json`, or `leed settings pagetype get <pageTypeId> --json`): when it already names a custom theme, write the utility under that name rather than choosing another. Never name a site theme after a built-in color (`color-theme-blue`, `color-theme-indigo` and the rest): the class would collide with Leed's own.
 
 ```css
 /* tailwind/docs/color-theme-acme.css — imported in site.config.css with NO layer() */

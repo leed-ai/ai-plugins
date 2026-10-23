@@ -61,9 +61,9 @@ Leed's own templates under `src/_includes/leed/` are not editable, but several o
 
 ## What You CANNOT Edit
 
-- **`src/_data/**/*`** — All JSON data files (managed by CMS)
+- **`src/_data/**/*`** — All JSON data files (managed by CMS), except temporary preview edits you revert (below)
 - **Content files** (`.md`, `.html`) in page type directories — managed by CMS
-- **`*.11tydata.json`** — Eleventy data files
+- **`*.11tydata.json`** — Eleventy data files, except temporary preview edits you revert (below)
 - **`identity.json`** — Site identity
 - **`README.md`** — Repository readme
 - **`.gitlab-ci.yml`** — CI configuration
@@ -76,16 +76,17 @@ The favicon, the company logo and the documentation light/dark logos are managed
 
 ### Temporary Edits During Development
 
-During the design/development cycle, you MAY temporarily edit JSON data files (e.g., `_data/menu.json`, `_data/labelList.json`) to experiment with how changes will look in the local build. This is useful for:
+During the design/development cycle, you MAY temporarily edit JSON data files (e.g., `_data/menu.json`, `_data/labelList.json`) and Eleventy data files (`src/src.11tydata.json`, `src/<slug>/<slug>.11tydata.json`) to experiment with how changes will look in the local build. This is useful for:
 - Testing a new menu structure before configuring it in the CMS
 - Previewing how different labels or user profiles will render
 - Adjusting form definitions to prototype a layout
+- Trying a documentation set's color theme or layout before setting it in the CMS: `documentationConfiguration.colorTheme` (e.g. `"color-theme-row64"`) or `documentationConfiguration.layoutName` (`alpha`, `bravo` or `charlie`) in the page type's `src/<slug>/<slug>.11tydata.json`
 
-**These changes MUST be reverted before committing.** The CLI will reject commits that modify data files. After previewing locally, make the real changes through the CMS interface, then pull the updated data files.
+**These changes MUST be reverted before committing.** `leed site validate` refuses a commit that changes `src/_data/` or any `*.11tydata.json` and says the change must be reverted, so `leed site commit` cannot carry one by accident. After previewing locally, make the real change in the CMS (the `/site-settings` skill, e.g. `leed settings pagetype set <pageTypeId> --documentation-configuration.color-theme <theme> --json`) and pull the updated data files.
 
 To revert temporary data changes:
 ```bash
-git checkout -- src/_data/
+git checkout -- src/_data/ src/src.11tydata.json 'src/*/*.11tydata.json'
 ```
 
 ## Disallowed File Types

@@ -55,7 +55,7 @@ The plugin's skills send data off your machine only to the destinations below. E
 | Cloudflare (Wrangler usage metrics) | Wrangler's anonymous usage metrics, unless you turn them off with `wrangler telemetry disable` or `WRANGLER_SEND_METRICS=false` | When `leed site build --wrangler` runs a local `wrangler dev` server |
 | Bun installer (`bun.sh`) | A download request | When `/leed:setup` finds Bun missing and you run its installer |
 | Claude Design handoff bundle (the URL in its prompt) | A download request for the design bundle | When `site-design-import` imports a Claude Design handoff and you say yes to downloading the bundle URL its prompt holds |
-| Your own staging and live site | Page, stylesheet and script requests | When `site-publish` checks staging against the live site before you promote |
+| Your own staging and live site, and the documentation site you migrate from | Page, stylesheet and script requests | When `site-publish` checks staging against the live site before you promote, and when `site-migrate` compares the staged pages with your current documentation site at your request |
 | Your GitHub or GitLab (`gh api`, `glab repo view`) | Requests for your repository's numeric id, default branch, CI file path and merge settings | When `/leed:docs-ci` reads your repository's branch model, with the `gh` or `glab` sign-in you already have |
 
 The release job `/leed:docs-ci` writes into your CI calls the Leed CMS from your CI pipeline when a release ships, not from your machine, so it is not a row above.

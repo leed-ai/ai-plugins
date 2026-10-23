@@ -12,6 +12,8 @@ One line per record, with its id, so the user can find it and a re-run can resum
 | Docs menu (left) | `<menuId>` | entries added |
 | Top and bottom menus | `<menuId>` | created, reused or extended |
 | Pages | count, then each `<pageId>` with its title | all drafts, none published |
+| Unmanaged pages | each `.hbs` file path with its `pageId` | built from the repository, live once pushed; edited only in the file |
+| Comparison report | `leed-import/comparison-report.md`, with its discrepancy count | only when step 6a ran |
 | Assets | count uploaded, count reused as duplicates | |
 | Starting page | `<pageId>` | the migrated landing page; the recipe's Welcome page taken out of the menu, or kept and why |
 | Path aliases | count, then each old path to `<pageId>` | preserved only when the source host is the company's domain |
@@ -41,6 +43,7 @@ One row per occurrence, grouped by section. Sort each section by source file, th
 - **approximated**: the meaning is kept but the form changed;
 - **inlined**: an include, partial or snippet copied into each page that used it;
 - **dropped**: removed, because Leed has no equivalent and the content survives without it;
+- **unmanaged page**: the whole page built as a `.hbs` file in the docs page type's directory, at the user's choice, because Leed Markdown could not express it; name the file;
 - **needs user**: left for a decision the migration cannot make: an external or wildcard redirect, an image hosted elsewhere, an API reference, a page the source hid.
 
 Use these sections, and keep a section with a "none" line rather than leaving it out, so the user can see it was checked:

@@ -38,8 +38,8 @@ Also read these data files from the site repository for context about the specif
 ### File Permissions
 - **ONLY edit** files in: `src/_layouts/`, `src/_includes/` (non-leed), `src/static/`, `tailwind/`, and root `.hbs` pages
 - **NEVER create `.md` or `.html` content files** — content is managed exclusively through the Leed CMS. All customer-created files must be `.hbs` (Handlebars).
-- **NEVER modify** files in: `src/_includes/leed/`, any `*.11tydata.json`, `identity.json`, `README.md`, `.gitlab-ci.yml`
-- **`src/_data/` JSON files** may be temporarily edited during development to preview changes locally (e.g., testing a menu layout, prototyping with different labels). These changes MUST be reverted before committing (`git checkout -- src/_data/`). The real changes should be made in the CMS.
+- **NEVER modify** files in: `src/_includes/leed/`, `identity.json`, `README.md`, `.gitlab-ci.yml`
+- **`src/_data/` JSON files and `*.11tydata.json` files** may be temporarily edited during development to preview changes locally: testing a menu layout, prototyping with different labels, or trying a documentation set's color theme or layout (`documentationConfiguration.colorTheme` or `.layoutName` in `src/<slug>/<slug>.11tydata.json`). `leed site validate` refuses a commit that changes any of them and says to revert it, so revert them before committing — see the temporary-edit workflow in `references/file-structure.md`. The real changes are made in the CMS.
 - **NEVER modify** CMS-managed content pages in page type directories (e.g., `src/blog/`, `src/resources/`)
 - **NEVER create** files with disallowed extensions (media, office docs, fonts except WOFF2)
 - **All files must be under 500KB**
@@ -63,7 +63,7 @@ Also read these data files from the site repository for context about the specif
 - **Links, images, lists of pages, menus, forms and layouts** follow site-patterns rules 1–8: `pageid:` links, image helpers sized to the container, Leed collections, `leed/menu/builder`, `leed/form`, one layout per page type.
 
 ### CMS Settings Are Not Repo Files
-- **Page types, labels, autolinks and the company's Settings (General) live in the CMS, not in your checkout.** `src/_data/pageTypeList.json`, `labelList.json`, `autolink.json` and `src.11tydata.json` are CMS-managed: the next settings publish overwrites whatever is there. To make a change that STICKS, **use the `/site-settings` skill** and `leed settings`, then publish. Editing the JSON by hand to preview a change locally is still fine — that is the temporary-edit workflow in `file-structure.md`, and you revert it with `git checkout -- src/_data/`.
+- **Page types, labels, autolinks and the company's Settings (General) live in the CMS, not in your checkout.** `src/_data/pageTypeList.json`, `labelList.json`, `autolink.json` and `src.11tydata.json` are CMS-managed: the next settings publish overwrites whatever is there. To make a change that STICKS, **use the `/site-settings` skill** and `leed settings`, then publish. Editing the JSON by hand to preview a change locally is still fine — that is the temporary-edit workflow in `file-structure.md`, and you revert it before committing.
 - **Read them freely.** Those same `_data` files are the right place to look up a label id, a page type's slug or the current documentation configuration while you build templates.
 
 ### Images, Documents & Media in Page Content
