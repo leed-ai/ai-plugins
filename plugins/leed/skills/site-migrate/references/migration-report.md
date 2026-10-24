@@ -30,6 +30,7 @@ One row per occurrence, grouped by section. Sort each section by source file, th
 |---|---|---|---|
 | `{% stepper %}` | `getting-started.md:14` | approximated | Leed has no stepper; written as a numbered list with a heading per step |
 | `title="app.js"` on a code fence | `install.md:31` | approximated | Code blocks keep their language only; the title is now the sentence before the block |
+| ` ```console ` fences (12) | `install.md`, `cli.md` | approximated | Written as `shell`, the catalog id; `shell` is not in the company's enabled code block languages |
 | `<CardGroup>` | `index.mdx:8` | approximated | Written as a bulleted list of `pageid:` links |
 | `--8<-- "snippets/auth.md"` | `api/auth.md:5` | inlined | Leed has no transclusion; the text is now copied into 3 pages |
 | `custom_edit_url` front matter | `guide.md:3` | dropped | No Leed page field |

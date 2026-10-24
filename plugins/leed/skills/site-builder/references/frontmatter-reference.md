@@ -212,7 +212,7 @@ Available for social links (used by `leed/docs/social-icons` automatically). You
 
 ### Extended Configuration
 
-Extra highlight.js languages can be configured in the CMS. They are automatically loaded as additional scripts during the build when the rendered page contains code blocks. No template changes needed.
+The build loads the highlight.js grammar for every language a page's code blocks use that highlight.js's common bundle lacks, on that page only. No template or setting is needed. `extended.highlighter.extraLanguages` is only for a grammar the build cannot find on its own, such as one served from the site's own host; `extended.highlighter.enabledLanguages` sets the editor's code block dropdown and is unused by the build. Which language ids to write is under "Code block languages" in `leed-markdown-format.md`.
 
 ### Documentation Configuration (Documentation Sites Only)
 For sites using the documentation layout system:

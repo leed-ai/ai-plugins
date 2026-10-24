@@ -336,6 +336,16 @@ a = [x for x in range(10)]
 - A class in a fence's group (` ```{.python} `, ` ```js {.x} `) renders on the site's `<pre>`, but a CMS page body keeps only a code block's language and `data-id`; validation reports the rest as dropped. An id (` ```js {#x} `) is not supported and is dropped on both sides.
 - In a CMS page body a code block cannot sit inside a list item: on import it is lifted out to directly after the outermost list, in order, with nothing lost. Tables are lifted out the same way.
 
+### Code block languages
+
+Write the language as its **catalog id**: the highlight.js 11.11.1 grammar name (`highlight.js/lib/languages/<id>`), plus `html`, which the editor stores apart from `xml`. `brainfuck` is not offered. `mermaid` and `math` are block kinds (below), not languages.
+
+- **Use the id, not an alias.** The site build resolves highlight.js aliases, so ` ```js ` still highlights on the site, but the editor finds a grammar by id and shows the language as typed: an alias of a grammar outside highlight.js's common bundle (` ```hbs `, ` ```docker `) is not highlighted in the editor, and the dropdown lists the raw spelling instead of its name.
+- **Common aliases and their ids:** `js`, `jsx`, `mjs`, `cjs` → `javascript`; `ts`, `tsx` → `typescript`; `sh`, `zsh` → `bash`; `console`, `shellsession` → `shell` (a terminal session with prompts; `shell` is not `bash`); `py` → `python`; `rb` → `ruby`; `yml` → `yaml`; `md` → `markdown`; `hbs` → `handlebars`; `docker` → `dockerfile`; `toml` → `ini`; `golang` → `go`; `rs` → `rust`; `cs`, `c#` → `csharp`; `kt` → `kotlin`; `ps1` → `powershell`; `gql` → `graphql`; `patch` → `diff`; `svg`, `xhtml` → `xml`; `text`, `txt` → `plaintext`.
+- **No language** is a fence with no info string. Use `plaintext` when the block should still say it is text.
+- **The editor's dropdown offers only the company's enabled languages**, `extended.highlighter.enabledLanguages` in the company settings. A company that never saved a list gets `bash`, `cpp`, `css`, `html`, `javascript`, `json`, `python`, `typescript` and `plaintext`. A page body is not checked against that list: a block in any other language keeps it and the dropdown still shows it, but an editor cannot pick that language for a new block until it is enabled. Saving the list rejects an id that is not in the catalog.
+- A language outside the catalog (` ```vue `, ` ```svelte `) is kept as written and is not highlighted, unless the company names a custom grammar for it in `extended.highlighter.extraLanguages`.
+
 ---
 
 ## Math
