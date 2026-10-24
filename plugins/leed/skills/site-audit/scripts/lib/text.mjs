@@ -155,12 +155,27 @@ export function blankMarkdownCode(text) {
 }
 
 /**
- * Leed's own partials, which the build replaces, and the disabled starter scaffolds in `_includes`, which
- * nothing calls, are not audited. A `-DISABLED.hbs` page outside `_includes` is an ordinary page to
- * Eleventy, which builds it, so it is audited like any other.
+ * Leed's own partials, which the build replaces, the `leed-*.hbs` templates the CLI copies in (sitemaps,
+ * feeds, redirects, the documentation layout) and removes after the build, and the disabled starter
+ * scaffolds in `_includes`, which nothing calls, are not audited. A `-DISABLED.hbs` page outside
+ * `_includes` is an ordinary page to Eleventy, which builds it, so it is audited like any other. Only
+ * `.hbs` counts: a `leed-*.md` page is the site's own content.
  */
 export function isLeedOwned(rel) {
-  return rel.startsWith("src/_includes/leed/") || /^src\/_includes\/.*-DISABLED\.hbs$/.test(rel);
+  return (
+    rel.startsWith("src/_includes/leed/") ||
+    /^src\/_includes\/.*-DISABLED\.hbs$/.test(rel) ||
+    /(?:^|\/)leed-[^/]*\.hbs$/.test(rel)
+  );
+}
+
+/**
+ * A file in an `_archive` folder, at any depth. Eleventy ignores them (`**\/_archive/**`) and Tailwind does
+ * not scan `src/_archive`, so nothing there is built: the audit reads none of it, for checks or for what
+ * the build uses.
+ */
+export function isArchived(rel) {
+  return rel.split("/").includes("_archive");
 }
 
 /**
@@ -170,7 +185,9 @@ export function isLeedOwned(rel) {
  */
 export function siteFiles(root) {
   const skippedDirs = [];
-  const all = walk(path.join(root, "src"), [], skippedDirs).map((file) => toRel(root, file));
+  const all = walk(path.join(root, "src"), [], skippedDirs)
+    .map((file) => toRel(root, file))
+    .filter((rel) => !isArchived(rel));
   const source = all.filter((rel) => !rel.startsWith("src/static/"));
   const templates = source.filter((rel) => /\.(hbs|md)$/.test(rel));
   const html = source.filter((rel) => /\.html?$/.test(rel));
@@ -181,9 +198,10 @@ export function siteFiles(root) {
   const other = source.filter((rel) => /\.(?:njk|liquid|11ty\.[cm]?js)$/.test(rel) && !rel.startsWith("src/_data/"));
   const styles = walk(path.join(root, "tailwind"))
     .map((file) => toRel(root, file))
-    .filter((rel) => rel.endsWith(".css") && !/(^|\/)tailwind-[^/]*\.css$/.test(rel));
+    .filter((rel) => rel.endsWith(".css") && !/(^|\/)tailwind-[^/]*\.css$/.test(rel) && !isArchived(rel));
   // A skipped directory matters only when it holds a template Eleventy would build.
   const skipped = skippedDirs
+    .filter((dir) => !isArchived(toRel(root, dir)))
     .filter((dir) => walk(dir).some((file) => /\.(?:hbs|md|html?|njk|liquid|11ty\.[cm]?js)$/.test(file)))
     .map((dir) => toRel(root, dir));
   return { templates, styles, html, staticPages, other, skipped };

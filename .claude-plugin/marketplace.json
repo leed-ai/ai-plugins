@@ -12,7 +12,7 @@
       "name": "leed",
       "source": "./plugins/leed",
       "description": "Build, preview and publish Leed CMS websites, change CMS settings and manage assets from Claude, with the Leed CMS and documentation available over MCP when you add them.",
-      "version": "6.29.0"
+      "version": "6.30.0"
     }
   ]
 }

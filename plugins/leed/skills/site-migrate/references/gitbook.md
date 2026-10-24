@@ -84,7 +84,7 @@ GitBook keeps the site header links, the site sections and variants and the foot
 
 ## Assets
 
-Images and files are in `.gitbook/assets/`, referenced from pages with relative paths (`../.gitbook/assets/image.png`), often with spaces or `(1)` suffixes in their names. Upload the folder with `leed asset upload` (prepare with `--type image --recursive`, then `--save`), map each referenced file to its returned markdown, and leave unreferenced files out unless the user wants them. A `<img>` with `width` keeps it as Leed's size (`![alt =300x](...)`).
+Images and files are in `.gitbook/assets/`, referenced from pages with relative paths (`../.gitbook/assets/image.png`), often with spaces or `(1)` suffixes in their names. Upload the folder with `leed asset upload` (prepare with `--type image --recursive`, then `--save`), map each referenced file to its returned markdown, and leave unreferenced files out unless the user wants them. A `<img>` `width` is dropped and reported: the image keeps the file's own width and height from the returned markdown.
 
 ## Redirects and old URLs
 

@@ -95,7 +95,7 @@ Snippets live in `snippets/` and are imported into a page (`import Intro from "/
 
 ## Assets
 
-Images and files are in the repository, referenced from the root (`/images/x.png`) or relatively. Upload each with `leed asset upload` and write the returned markdown in its place. An `<img>` with `width` keeps it as Leed's size; a `<Frame>` caption becomes the image's caption title. A `noZoom` attribute and light and dark image pairs (`className="block dark:hidden"`) are not carried: keep the light image and report the dark one.
+Images and files are in the repository, referenced from the root (`/images/x.png`) or relatively. Upload each with `leed asset upload` and write the returned markdown in its place. An `<img>` `width` is dropped and reported, and the image keeps the file's own width and height from the returned markdown; a `<Frame>` caption becomes the image's caption title. A `noZoom` attribute and light and dark image pairs (`className="block dark:hidden"`) are not carried: keep the light image and report the dark one.
 
 ## Redirects and old URLs
 

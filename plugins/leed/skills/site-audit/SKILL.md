@@ -13,6 +13,13 @@ You check a Leed site against the rules in `../site-patterns/SKILL.md` and repor
 - **Propose, then wait.** Every finding carries a proposed fix. Apply one only after the user says yes to that fix (or to a list of them that they have seen), and apply it through the normal route: templates and CSS with the `/site-builder` skill, CMS records with the `/site-settings` skill.
 - **A page whose body the CMS manages is changed in the CMS**, not in its `.hbs` file: the next publication overwrites a repo edit. The script marks findings in page files (outside `_includes` and `_layouts`, with a `pageId`) `"where": "page"`; before proposing a file edit for one, check whether the CMS manages that page's body.
 
+## Out of scope
+
+Two kinds of file are never audited, by the script or by your own judgment checks, and never reported, not even as unreferenced:
+
+- **`leed-*.hbs` templates, at any depth** (`src/leed-sitemap.hbs`, `src/_layouts/leed-documentation.hbs`), and everything in `src/_includes/leed/`. The CLI copies them in for each build and removes them afterwards; the site does not own them, and a fix there would be overwritten by the next build. A `leed-*.md` page is not one of them: it is the site's own content.
+- **Everything in an `_archive` folder, at any depth.** Eleventy ignores `**/_archive/**`, so nothing there is built. A partial or layout that only archived files use counts as unreferenced.
+
 ## Choose the mode
 
 | Mode | When | What it checks |

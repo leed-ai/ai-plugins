@@ -22,7 +22,7 @@ import { constants } from "./lib/constants.mjs";
 import { checkMissingLayouts, namedLayouts } from "./lib/layouts.mjs";
 import { auditStyle } from "./lib/styles.mjs";
 import { auditTemplate } from "./lib/templates.mjs";
-import { isLeedOwned, Report, readText, siteFiles, toRel, UsageError } from "./lib/text.mjs";
+import { isArchived, isLeedOwned, Report, readText, siteFiles, toRel, UsageError } from "./lib/text.mjs";
 import { checkSiteTokens } from "./lib/tokens.mjs";
 import { checkUnusedAndTier, parseEjectJson } from "./lib/used.mjs";
 
@@ -39,7 +39,9 @@ function changedFiles(root, all, changed, report) {
   const wanted = new Set();
   for (const file of changed) {
     const rel = toRel(root, path.resolve(root, file));
-    if (all.templates.includes(rel) || all.styles.includes(rel)) wanted.add(rel);
+    if (isArchived(rel)) report.note(`skipped ${file}: in an _archive folder, which the build ignores`);
+    else if (isLeedOwned(rel)) report.note(`skipped ${file}: a Leed template the CLI provides`);
+    else if (all.templates.includes(rel) || all.styles.includes(rel)) wanted.add(rel);
     else report.note(`skipped ${file}: deleted, or not a template or stylesheet the audit checks`);
   }
   report.note("changed-files mode: missing layouts, unset tokens and unreferenced files were not checked");

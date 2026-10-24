@@ -88,7 +88,7 @@ With `use_directory_urls: true` (the default) `guide/setup.md` is served at `/gu
 
 ## Assets
 
-Images are files under `docs/`, referenced relative to the page (`../img/x.png`) or to the docs root. Resolve each to its file, upload it with `leed asset upload`, and write the returned markdown in its place. `{ width="300" }` after an image becomes Leed's size (`![alt =300x](...)`); `align=left` and `loading=lazy` are dropped. An image followed by a `<figcaption>` (Material's figure pattern) becomes an image with a caption title.
+Images are files under `docs/`, referenced relative to the page (`../img/x.png`) or to the docs root. Resolve each to its file, upload it with `leed asset upload`, and write the returned markdown in its place. `{ width="300" }` after an image is dropped and reported: the image keeps the file's own width and height from the returned markdown; `align=left` and `loading=lazy` are dropped. An image followed by a `<figcaption>` (Material's figure pattern) becomes an image with a caption title.
 
 ## Redirects and old URLs
 
