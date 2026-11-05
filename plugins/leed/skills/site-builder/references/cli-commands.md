@@ -760,7 +760,7 @@ leed settings oidctrust delete tr_1a2b                         # revokes; the ro
 
 ```bash
 leed settings path list --alias --json                         # ids first; the id is what delete takes
-leed settings path create pg_about /company                     # always an alias
+leed settings path create pg_about /company                     # always an alias; refused under a reserved path or for an internal page
 leed settings path resolve https://example.com/company --json   # { pageId } or { pageId: null }
 leed settings path delete 42                                   # an alias: no confirmation
 leed settings path delete 1 --yes                               # a current row: takes /about off the live site

@@ -55,7 +55,7 @@ Use these sections, and keep a section with a "none" line rather than leaving it
 - **Front matter**: each key not stored as a page field, tags and keywords with their values, and each summary written from a first paragraph.
 - **Assets**: each image or file not uploaded, and why (hosted elsewhere, missing from the copy, a type the asset manager refuses).
 - **Links**: each internal link whose target was not migrated, and each `#fragment` whose heading slug changed.
-- **Redirects and old URLs**: each redirect or old URL that is not an alias: external targets, wildcards and patterns, paths already taken. When the source host is not the company's domain, one **needs user** row says the aliases catch the old links only once that host moves to Leed or redirects to it.
+- **Redirects and old URLs**: each redirect or old URL that is not an alias: external targets, wildcards and patterns, paths already taken, paths Leed reserves. When the source host is not the company's domain, one **needs user** row says the aliases catch the old links only once that host moves to Leed or redirects to it.
 - **Header and footer**: copyright text, social icons, search and version or language switchers.
 - **Theme**: applied, or **skipped, with the reason** (the plan does not include docs template customization, so a built-in color theme was set instead), plus source CSS, fonts and layout that were not carried over, and each site-wide `<head>` tag (analytics, verification) the source added, with where it would go if kept: `src/_includes/header-includes.hbs`.
 - **Versions and locales**: every version and locale other than the one migrated.
