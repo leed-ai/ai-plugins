@@ -72,7 +72,7 @@ leed settings form delete <formId>
 
 leed settings shortcode list
 leed settings shortcode get <code>
-leed settings shortcode create (--url <url> | --page-id <pageId>) [--vanity <code>] [--params.utm_source <v> …] [--from-file <path>]
+leed settings shortcode create (--url <url> | --page-id <pageId>) [--vanity <code>] [--campaign-id <id>] [--params.utm_source <v> …] [--from-file <path>]
 leed settings shortcode set <code>          # always refuses; see below
 
 leed settings user list

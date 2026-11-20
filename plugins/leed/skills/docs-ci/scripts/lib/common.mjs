@@ -47,8 +47,27 @@ export function checked(value, pattern, flag, what) {
 
 /** Print one JSON document and exit with `code`. */
 export function finish(document, code = 0) {
-  process.stdout.write(`${JSON.stringify(document, null, 2)}\n`);
+  writeAllSync(`${JSON.stringify(document, null, 2)}\n`);
   process.exit(code);
+}
+
+/**
+ * Write all of `text` to stdout before returning (#500). `process.stdout.write` to a pipe is asynchronous on macOS, so
+ * a `process.exit()` straight after it drops whatever is past the pipe's 8 KB buffer. A pipe's descriptor may be
+ * non-blocking, so a full pipe answers EAGAIN: wait a moment for the reader and retry.
+ */
+function writeAllSync(text) {
+  const bytes = Buffer.from(text);
+  const pause = new Int32Array(new SharedArrayBuffer(4));
+  let offset = 0;
+  while (offset < bytes.length) {
+    try {
+      offset += fs.writeSync(1, bytes, offset);
+    } catch (error) {
+      if (error.code !== "EAGAIN") throw error;
+      Atomics.wait(pause, 0, 0, 5);
+    }
+  }
 }
 
 export function fail(error) {

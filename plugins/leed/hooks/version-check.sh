@@ -33,15 +33,19 @@ command -v leed >/dev/null 2>&1 || exit 0
 # the script has exited. So on both paths leed writes to a file, and the
 # watchdog to /dev/null. LEED_JSON is cleared because in JSON mode the version
 # text goes to stderr and stdout holds only the JSON envelope.
+# The bound is 3 seconds; LEED_VERSION_CHECK_TIMEOUT (whole seconds) overrides it, which the plugin's tests use
+# so a slow stub on a loaded machine is not mistaken for a hung binary.
+bound=${LEED_VERSION_CHECK_TIMEOUT:-3}
+case $bound in '' | *[!0-9]*) bound=3 ;; esac
 cli_version_output() {
   out_file=$(mktemp 2>/dev/null) || return 1
   if command -v timeout >/dev/null 2>&1; then
-    LEED_JSON= timeout 3 leed --version >"$out_file" 2>/dev/null
+    LEED_JSON= timeout "$bound" leed --version >"$out_file" 2>/dev/null
     rc=$?
   else
     LEED_JSON= leed --version >"$out_file" 2>/dev/null &
     pid=$!
-    (sleep 3; kill "$pid") >/dev/null 2>&1 &
+    (sleep "$bound"; kill "$pid") >/dev/null 2>&1 &
     watchdog=$!
     wait "$pid"
     rc=$?

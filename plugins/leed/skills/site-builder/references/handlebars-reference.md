@@ -248,6 +248,7 @@ to the end in both directions.
 | `concat` | Inline | `{{ concat "a" "b" "c" }}` | Concatenate strings |
 | `wrapSubstring` | Inline | `{{ wrapSubstring field "text" "class" }}` | Wrap text in span |
 | `stripTags` | Inline | `{{ stripTags html }}` | Remove HTML tags |
+| `xHandle` | Inline | `{{ xHandle externalAccounts.twitterId }}` | X (Twitter) handle with one leading `@`; empty when unset |
 | `firstTruthy` | Block | `{{#firstTruthy a b c}}...{{/firstTruthy}}` | First truthy value becomes block context |
 
 **`firstTruthy` usage:** Tests arguments in order; the first truthy value becomes `this` inside the block. Use this instead of `(or ...)` when you need the actual value, not a boolean:

@@ -1,6 +1,6 @@
 ---
 name: review
-description: Answers the comments people leave on a page in the Leed editor (`/leed:review`) — reads every open comment thread with `leed page review` or the CMS MCP tool `get_page_review_state`, reads each thread in full, answers each one as a tracked suggestion the person accepts or rejects in the editor, never a direct edit, and reports per thread what was suggested, or why nothing was. Use when someone asks to review, answer or address the comments on a Leed page, or says "review the comments on <page>" after an agent wrote content they then commented on.
+description: Answers the comments people leave on a page in the Leed editor (`/leed:review`) — reads every open comment thread with `leed page review` or the CMS MCP tool `get_page_review_state`, reads each thread in full, answers each one as a tracked suggestion the person accepts or rejects in the editor, never a direct edit, and reports per thread what was suggested, or why nothing was. Use when someone asks to review, answer or address the comments on a Leed page, or says "review the comments on <page>" after an agent wrote content they then commented on. Not for scoring a draft against buyer personas, which is /leed:campaign-review.
 ---
 
 # Review Skill

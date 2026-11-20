@@ -182,6 +182,7 @@ A failure's `error.exit` always equals the process exit status. A Commander usag
 - `leed site push` — the commits reached the remote but notifying the CMS failed: `data.notification` is `"failed"`, the cause is in `data.notificationError`, and the exit is that error's class.
 - `leed site upload` — the upload succeeded but the CMS callback did not: exit `4`.
 - `leed page create` — the page was created but its body could not be filled: exit is the fill error's class.
+- `leed page create --gap` — the page was created but could not be linked to its Search & gaps item: `data.gap.linked` is `false`, `warnings` carries the `leed know gap link` that finishes it, and the exit is the link error's class. Never run create again.
 - `leed page create --source-id` / `leed page update --source-id` — the content landed but the CMS could not tag it with the source id: `data.sourceIdWritten` is `false`, the CMS's reason is in `warnings`, the exit is `3`, and `next` is the `leed page stamp` that sets the tag on its own.
 - `leed page stamp` — one or more pages failed, including when every page did: `data.failed[]` names each with its `code`, and the exit is the first failure's class.
 - `leed asset upload --save` — some files failed: exit `3`, with per-file results in the document.
@@ -228,6 +229,10 @@ The one deliberate exception is `leed site upload` running in CI, where nobody c
 - `leed site validate --reset`
 - `leed settings oidctrust create` — it grants a CI pipeline token access to the company, which is irreversible in the sense that matters: the trust can be revoked but the tokens it already minted were real.
 - `leed settings path delete <id>` **when the row is a `current` or a `next` one** — an alias is re-creatable from the same two values and goes through ungated, while removing either of the others takes a URL off the live site and `settings path create` cannot put it back. Read the `type` column in `path list` first.
+- `leed campaign deliverable approve`, `reject` and `reschedule` — each can schedule, unschedule or move a page on the live site. At a terminal they show the CMS's preview before asking.
+- `leed campaign deliverable set` **when the CMS answers `confirm_required`** — an edit that would move or unschedule the deliverable's scheduled page. The refusal carries the CMS's preview, as JSON, in `error.details`; any other edit goes through ungated.
+- `leed journey delete` — it removes a stage from the list for everyone. At a terminal it shows the CMS's preview before asking.
+- `leed campaign run approve` — it applies a step run's proposed writes to the campaign as you. At a terminal it shows the CMS's preview (how many writes it applies, and which `--drop` leaves out) before asking.
 
 ```json
 {
@@ -371,7 +376,7 @@ Init copies a fixture set shipped with the CLI, then installs Font Awesome Free 
 **What runs.** A sandbox build is always a preview build, its reported `commitHash` is `sandbox`, and it reads the plan tier from the sandbox's own `src/src.11tydata.json`, which unlocks every paid-plan template and style locally. The first build installs the site's packages (`tailwindcss`), so it needs the network or a warm Bun cache once. Apart from the init's font download, nothing a sandbox runs reaches the network on its own: the credential migration and the self-update check are skipped there.
 
 - **Runs in a sandbox:** `site init`, `site build`, `site eject`, `site vscode`, `site list`, `import markdown`, `import html`, `import openapi`, `import clean`, `auth login`, `login`, `setup`, `auth logout`, `auth status`, `schema`, `cli search`, `self-update`, `completion install`, `completion uninstall`, `mcp docs`, `mcp add --docs`
-- **Refuses with `sandbox_site`:** `site validate`, `site commit`, `site push`, `site upload`, `site notify-cms`, `auth rotate`, `auth reset`, `import status`, `import apply`, `mcp add --cms`, `asset *`, `page *`, `settings *`, `deployments *`, `contacts *`, `feedback *`
+- **Refuses with `sandbox_site`:** `site validate`, `site commit`, `site push`, `site upload`, `site notify-cms`, `auth rotate`, `auth reset`, `import status`, `import apply`, `mcp add --cms`, `asset *`, `page *`, `persona *`, `journey *`, `campaign *`, `plan *`, `settings *`, `deployments *`, `contacts *`, `know *`, `feedback *`
 
 A refusal exits `3`. Its message names the command and its hint names `/leed:site-sandbox-move`. `leed import markdown` and `html` stage content into the sandbox for preview exactly as they do in a real site; only `apply` and `status` need the CMS.
 
@@ -650,7 +655,7 @@ leed settings form delete <formId>
 
 leed settings shortcode list
 leed settings shortcode get <code>
-leed settings shortcode create (--url <url> | --page-id <pageId>) [--vanity <code>] [--params.utm_source <value> …] [--from-file <path>]
+leed settings shortcode create (--url <url> | --page-id <pageId>) [--vanity <code>] [--campaign-id <id>] [--params.utm_source <value> …] [--from-file <path>]
 leed settings shortcode set <code>                           # present, and always refuses
 
 leed settings user list
@@ -729,7 +734,7 @@ leed settings form set fm_1a2b --clear autofill                 # back to "None"
 leed settings form publish fm_1a2b                              # same as `leed settings publish form-fm_1a2b`
 ```
 
-**`leed settings shortcode set` ALWAYS refuses, unconditionally, and that is the design.** A shortcode is read-only once it exists: its destination and UTM tags are fixed at creation so a tracked link never changes under a QR code or a printed URL already in circulation. There is no update route for one in the API at all. The command is in the tree so the rule is discoverable from `--help` rather than from an "unknown command" error, it carries **no field flags and no `--from-file`** (a flag for a value that can never be written would be a lie), it never authenticates, and it answers `invalid_arguments` with a hint naming `shortcode create`. Do not retry it. `create` requires exactly one of `--url` and `--page-id`, and the server normalizes every UTM value — trimmed, lowercased, whitespace runs collapsed to hyphens — so the stored value can differ from what you sent; read it back off the result. A `--vanity` becomes the code permanently. Every `shortcode` route sits behind the Growth-tier short-URL feature, so any verb can answer a 402, which arrives as `permission_denied` with an upgrade hint.
+**`leed settings shortcode set` ALWAYS refuses, unconditionally, and that is the design.** A shortcode is read-only once it exists: its destination and UTM tags are fixed at creation so a tracked link never changes under a QR code or a printed URL already in circulation. There is no update route for one in the API at all. The command is in the tree so the rule is discoverable from `--help` rather than from an "unknown command" error, it carries **no field flags and no `--from-file`** (a flag for a value that can never be written would be a lie), it never authenticates, and it answers `invalid_arguments` with a hint naming `shortcode create`. Do not retry it. `create` requires exactly one of `--url` and `--page-id`, and the server normalizes every UTM value — trimmed, lowercased, whitespace runs collapsed to hyphens — so the stored value can differ from what you sent; read it back off the result. A `--vanity` becomes the code permanently, and so does a `--campaign-id`, which tags the link to an Engage campaign in the same company. Every `shortcode` route sits behind the Growth-tier short-URL feature, so any verb can answer a 402, which arrives as `permission_denied` with an upgrade hint.
 
 ```bash
 leed settings shortcode list --json
@@ -813,6 +818,45 @@ The destination and the source are **required positionals** — a contact list c
 
 An export holds the company's PII. The file is written `0600`, and a destination inside a git repository that does not ignore it is **refused before anything is written** — `leed site commit` runs `git add --all`, so a contact CSV in a site checkout would be committed. A cell beginning `=`, `+`, `-` or `@` is written with a leading apostrophe so a spreadsheet shows it as text instead of executing it; `leed contacts import` strips that apostrophe again.
 
+## Know analytics (`leed know`)
+
+Read Know views and saved views, and decide Search & gaps items, from the command line. Like `leed contacts`, these need no site checkout: `--company <companyId|domain>` and `-e, --env <name>` select the company. `views`, `show`, `run` and `gap show` are reads against the CMS; `gap link`, `gap dismiss` and `gap reopen` record a decision and take `--dry-run`. All take the global `--json`.
+
+```bash
+leed know views                                        # every view (its filters, sections, plan feature) and your saved views
+leed know show overview                                # one view, last 30 days
+leed know show overview --readers agents --agent-identity signed-in --start 2026-10-01 --end 2026-11-01
+leed know show people --out ./people.json              # sections naming people go to a 0600 file
+leed know show person --filter contactId=42 --out ./person.json   # a view's own parameters go through --filter
+leed know show emailSocial --filter source=email --filter releaseId=12
+leed know run 7                                        # a saved view, by id
+leed know run "Last 30 days, everyone"                 # or by its exact name
+leed know gap show unanswered "how do i rotate keys"   # one What to write next item, with its evidence
+leed know gap link unanswered "how do i rotate keys" --page pg_123   # an existing page addresses it: in progress
+leed know gap dismiss unanswered "how do i rotate keys" --count 12 --reason "covered by Rotating API keys"   # needs no content; back once its count doubles
+leed know gap reopen unanswered "how do i rotate keys"
+```
+
+**Filters on `show`:** `--start`/`--end` (ISO-8601; default the last 30 days, except on `campaigns`, where it is the selected campaign's dates, first to last deliverable day, as on the screen), `--compare`/`--no-compare`, `--page-type <id>`, `--readers <everyone|people|agents>`, `--agent-identity <any|signed-in|anonymous>`, `--country <cc>` (sessions and site searches match their session's location; agent calls and questions the request's location or the signed-in contact's country), `--referrer <host>`, `--channel <channel>`, `--account <any|customers|id>`, `--journey-stage <journeyId|none>` (a journeyId from Settings › Journey Stages; a contact is at the furthest stage among the pages it read), `--signed-in-agents`, and the repeatable `--filter key=value` for a view's own filters and parameters that have no flag (the person view's required `contactId`; Email & social's `source`, `campaignId` and `releaseId`; Campaigns' `campaignId`). `--filter` takes only a key the view declares and no flag above sets. Each view declares which of these it takes — `leed know views` lists them — and a filter the view does not take is **refused with `invalid_arguments`**, never silently ignored. Agents are only ever signed in or anonymous; there is no breakdown by client.
+
+**`run <savedView>`** takes an id (all digits) or one saved view's exact name, matched case-sensitively first and then ignoring case. Two saved views with the same name are refused with their ids; run it by id. A saved view whose view no longer exists answers `not_found`.
+
+**Plans.** On a plan without the view's feature, the read still succeeds: `gated: true`, the view's `totals`, and `sections: null`. It is not a failure, so do not retry it.
+
+**Rows that name people never go to stdout.** A view lists the sections that name people in `personSections`. When a read returns any, pass `--out <file>`: they are written there as JSON with mode `0600`, and the result carries `{ written: <rows> }` in their place plus a `personFile` block. Without `--out` the command refuses with `invalid_arguments` before printing anything. A destination inside a git repository that does not ignore it is refused before any request, as for `leed contacts export`. `--dry-run` reports the file it would write and writes nothing.
+
+**Writing for a gap (`leed know gap`).** Search & gaps' "What to write next" items come from `leed know show searchGaps` (`sections.writeNext.items`, by tab). Each has a `kind` (`unanswered`, `rising_falling` or `shipped_unread`) and a `gapKey` (the normalized question for `unanswered`, quoted; else the page id). The flow:
+
+1. `leed know show searchGaps` — pick an open item.
+2. `leed know gap show <kind> <gapKey>` over the same window and filters (`--start`/`--end`, `--compare`, `--page-type`, `--readers`, `--agent-identity`) — the item plus its evidence: for a question, every spelling with its asks by source, the site search terms, what readers reworded it as, the pages they read after asking, and readers, people and accounts (only contacts inside the plan's visible-contact limit are counted, nobody is named, and the window is clamped to the plan's retention); for a page item, the page itself with the item's numbers; the linked `draft`; and `nearestPages`, the company's own search for the question (id, title, path, page type, status). An item the window does not list is `not_found`.
+3. Decide what answers it best: a **new page**, or a **revision of an existing one** (a nearest page, or the item's own page).
+4. A new page: `leed page create ... --gap <kind>:<gapKey>` creates the draft and links it, so the item moves to In progress with that page (`data.gap.linked`). An existing page: a `PUBLISHED` page must be put `IN_REVISION` first (over MCP, `update_page_metadata` with `status: "IN_REVISION"`), then write the change as tracked suggestions stamped with the source id — `leed page update <pageId> --block <dataId> --suggest --source-id <sha>`, or over MCP `update_page_body` in `mode: "suggest"` with `sourceId` — then `leed know gap link <kind> <gapKey> --page <pageId>`. Linking the page an item is already linked to succeeds again, so the link is safe to retry.
+5. Never publish from an agent. A person reviews the draft; the item closes on its own once its linked page is published, and docs pages publish with the release that carries their source id.
+
+`leed know gap dismiss <kind> <gapKey> --count <n> [--reason <text>]` takes the item's current `count` and hides it until that count doubles. Give a reason when dismissing: `--reason` says why the item needs no content in a few words ("covered by <page>", "not our product"), trimmed and at most 280 characters. It is shown under the item on Know's Dismissed tab and returned as `dismissedReason` on the item by `leed know show searchGaps` and `leed know gap show`. `leed know gap reopen` undoes a dismissal or a link (the page is left as it is) and clears the reason.
+
+There are **no CSV exports and no webhooks**: Know data is read through `leed know` and the Operator MCP (`get_know_view`, `run_saved_view`, `get_gap`; the decisions are `mark_gap_in_progress`, `dismiss_gap` and `reopen_gap`, and `create_page_from_markdown` takes `gap`). Operator MCP reads are listed on Know's Data access screen; `leed know` reads are not recorded.
+
 ## Content Import (`leed import`)
 
 Content into the CMS, from whichever source it is in. The **source is the sub-noun**, so one command set covers an OpenAPI spec, a directory of markdown and a directory of HTML. Run these from the site folder: the staged set is written into the checkout so you can review it with a real build.
@@ -841,20 +885,27 @@ leed import clean  --page-type-id pt_docs                     # discard the stag
 
 ## Pages (`leed page`)
 
-The CMS's pages from the command line — **one page at a time, immediately, with validation before the write**. That is what separates this noun from `leed import`: that one is set-based and staged, reviewed through `leed site build` before anything is uploaded. Here each verb acts on a single page (`stamp` takes several, but changes only their source id), the CMS mints the id, and nothing needs a site checkout, so `--company <companyId|domain>` and `-e, --env <name>` select the target exactly as on `leed settings`.
+The CMS's pages from the command line — **one page at a time, immediately, with validation before the write**. That is what separates this noun from `leed import`: that one is set-based and staged, reviewed through `leed site build` before anything is uploaded. Here each verb acts on a single page (`stamp` takes several, but changes only their source id, and `search` reads across one section), the CMS mints the id, and nothing needs a site checkout, so `--company <companyId|domain>` and `-e, --env <name>` select the target exactly as on `leed settings`.
 
 ```bash
 leed page sync-state --page-type-id pt_docs                   # every page in one page type: path, status, source id
 leed page get <pageId>                                        # print one page's markdown body (--json adds metadata and block anchors)
 leed page review <pageId>                                     # read its open comment threads and pending suggestions, per block
+leed page search "brand voice" --section internal             # search the internal sets by content, as MCP search_internal does
+leed page search "tone" --section internal --page-type-id <id>  # ...narrowed to one internal set (repeatable)
 cat page.md | leed page create --page-type-id pt_docs         # create one page from a pipe
 leed page create --page-type-id pt_docs --file ./page.md      # ...or from a file
+leed page create --page-type-id pt_docs --file ./page.md --gap "unanswered:how do i rotate keys"  # ...and link it to a What to write next item
+leed page create --page-type-id pt_blog --file ./post.md --planned-date 2026-11-01 --journey-id <id>  # ...planned, with a journey stage
 cat page.md | leed page update <pageId>                       # replace the whole body (never-published pages only)
 cat block.md | leed page update <pageId> --block <dataId>     # replace ONE block, under compare-and-swap
 cat block.md | leed page update <pageId> --block <dataId> --source-id <sha>  # ...and tag the page with the commit it was checked against
 leed page stamp <pageId...> --source-id <sha>                 # mark pages current without editing them
+leed page lock <pageId>                                       # lock an internal page's current revision
 leed page publish <pageId>                                    # schedule it for now
-leed page schedule <pageId> --at 2026-11-01T09:00:00Z         # schedule it for an instant
+leed page schedule <pageId...> --at 2026-11-01T09:00:00Z      # schedule one or more pages for one instant
+leed page meta get <pageId>                                   # its metadata: title, summary, SEO, journey stage, planned date
+leed page meta set <pageId> --summary "…" --planned-date 2026-11-01  # change metadata, as update_page_metadata does
 leed page frontmatter get <pageId>                            # read the page's custom frontmatter
 cat fm.yaml | leed page frontmatter set <pageId>              # REPLACE the page's custom frontmatter
 ```
@@ -902,6 +953,14 @@ cat block.md | leed page update <pageId> --block <dataId> --suggest   # answer o
 
 It reads only: nothing on the CLI or over MCP resolves a comment or a suggestion, which is the person's act in the editor. Answer a thread with a `--block` write and `--suggest` on a block whose `canReplace` is true, never a direct edit, which would destroy the thread; an answer that needs an insert beside the block is `update_page_body` over MCP. The whole loop, from reading every thread to the per-thread report, is the `/leed:review` skill (`../review/SKILL.md`). Before any write to a page that already exists, read its count with `--include-types text,emoji`: above zero, write only suggestions.
 
+### `search`: find pages by what they say
+
+`leed page search <query> --section site|documentation|internal` searches page content within one section: `site` is posts, `documentation` is documentation and API pages, and `internal` is the internal sets — a company's brand voice, messaging, guardrails and product specs. It calls the same CMS route as the MCP search tools, as you, and never returns a page you cannot read: `--section internal` returns the pages MCP `search_internal` returns for the same user, `--section documentation` covers documentation and API pages together, which `search_documentation` and `search_api` each cover for one kind, and `--section site` covers what `search_posts` does. Any role with read access can run it.
+
+`--section` is required. `--page-type-id <id>` narrows the search to that page type and can be repeated; it only ever narrows the section, never widens it, and a blank one is refused — leave it out to search the whole section. `--mode` is `freetext`, `vector` or `hybrid` (the default), and `--limit` is 1–50 (default 10). The query is 2–200 characters.
+
+`data.results[]` is best first, each `{ pageId, title, snippet, score, rank, matchedIn, pageTypeId }`; every field but `pageId` and `title` is present only when the CMS sent it. `data.mode` is the mode the CMS actually ran: when vector search is unavailable it falls back to full text, `data.degraded` is `true`, and its sentence is in `data.note` and in `warnings`.
+
 ### `get`: read a page, edit it, send it back
 
 `leed page get <pageId>` reads one page. **Without `--json` it prints only the markdown body** — no headline, no metadata — so a redirect gives you a document the write verbs accept:
@@ -921,11 +980,27 @@ A page's `sourceId` is the commit its content was last checked against. The docs
 - **`--source-id <sha>` on `create` and `update`** sends the id on the request that writes the body — the fill on `create` and on a whole-body `update`, the ops on a `--block` write, in direct and `--suggest` mode alike — so the tag lands on the revision that holds the content. The value is trimmed; an empty one is `invalid_arguments`. Whenever it is given, the result carries `data.sourceIdWritten`. When the CMS applied the content but could not write the tag, that is `false`: the run is a partial success (`ok: true`, exit `3`), the CMS's reason is in `warnings`, and `next` is `leed page stamp <pageId> --source-id <sha> --env <env> --company <company>`. Do **not** re-run the write — run the stamp.
 - **`leed page stamp <pageId...> --source-id <sha>`** marks pages current **without editing them**. Only `sourceId` is written: not the body, not the status, not any other field — **a published page stays published**. Use it for a page you reviewed against a commit and found still accurate. `--source-id` is mandatory. Each page is read first; one that already carries the id is reported with `changed: false` and not written, so a repeat run is safe. The result lists `data.pages[]` as `{ pageId, sourceId, previousSourceId, changed }` and any failures in `data.failed[]` as `{ pageId, code, message }` — a page that does not exist is `not_found` there and does not stop the others. If any page fails — even every page — the document is still `ok: true` with each failure in `data.failed[]`, and the run exits with the first failure's class; `data.pages` is empty when none was stamped. `--dry-run` reads every page and returns the plan of PUTs it would make, writing nothing. There is no `next`: stamping is the end of the job.
 
+### `lock`: settle an internal page
+
+`leed page lock <pageId>` locks an internal page's current revision, the internal stand-in for publishing: an internal page is never published, so a locked revision is the settled version others read. It needs Content Publisher, and it works only on internal pages — any other page gets `invalid_arguments` from the CMS; publish it instead. A page that is not editable, or is already locked, is a `conflict`. `--dry-run` sends nothing and returns the one POST it would make. The result is `data: { pageId, status, version }`.
+
+A locked page refuses body and metadata writes until it is revised: with Revise in the editor, or MCP `update_page_metadata` with `status: "IN_REVISION"`, which opens the next version.
+
 ### `publish` is `schedule` at now
 
-There is no instant-publish endpoint. `leed page publish` schedules the page for the current instant and the CMS's publication cron builds it on its next pass, so both verbs answer `SCHEDULED` rather than `PUBLISHED` — watch for the transition with `leed page sync-state`. `--at` takes a full ISO 8601 instant **with a zone** (`2026-11-01T09:00:00Z`, or `…+01:00`); a local time with no zone is refused, because it means a different moment on your machine and on the worker that reads it. A page that is already `PUBLISHED` cannot be scheduled — revise it first.
+There is no instant-publish endpoint. `leed page publish` schedules the page for the current instant and the CMS's publication cron builds it on its next pass, so it answers `SCHEDULED` rather than `PUBLISHED`, and `schedule` lists its pages as `scheduled` — watch for the transition with `leed page sync-state`. `--at` takes a full ISO 8601 instant **with a zone** (`2026-11-01T09:00:00Z`, or `…+01:00`); a local time with no zone is refused, because it means a different moment on your machine and on the worker that reads it. A page that is already `PUBLISHED` cannot be scheduled — revise it first.
 
 **Scheduling any page locks its page type's slug.** That is the CMS's behavior, not this command's, and unscheduling does not undo it.
+
+### `schedule` takes several pages at one slot
+
+`leed page schedule <pageId...> --at <instant>` schedules every page it names for the same instant. The CLI sends at most 25 pages a call, so 30 ids are two calls, and a call that times out is resent once. Re-running the same command is safe: a page already scheduled for that instant is left alone and reported in `data.alreadyScheduled`. The result lists `data.scheduled`, `data.alreadyScheduled` and `data.failed[]` as `{ pageId, code, message }`; if any page fails the document is still `ok: true` and the run exits with the first failure's class, as `stamp` does. `--dry-run` asks the CMS what it would do and returns its preview in `data.preview`, changing nothing. `leed page publish` still takes one page.
+
+### `create --planned-date --journey-id`, and `meta get|set`
+
+`leed page create` takes `--planned-date <date>` (`YYYY-MM-DD` or an instant with a zone; see Date flags under Plan calendar) and `--journey-id <id>`, one of the ids `leed journey list` prints; an unknown stage is refused before anything is written.
+
+`leed page meta get <pageId>` prints a page's metadata: `title`, `summary`, `keywords`, `labels`, `authors`, `ogCard`, `featureImage`, `journeyId`, `plannedDate` and `status`, never its body. `leed page meta set <pageId>` changes them, as MCP `update_page_metadata` does: `--title`, `--summary`, `--keywords`, `--labels`, `--authors` (JSON lists, replaced whole), `--og-card` and `--feature-image` (the whole object), `--journey-id`, `--planned-date`, `--clear <field>` (`--clear planned-date` un-plans the page) and `--from-file <path>`. **A change to a PUBLISHED page moves it to IN_REVISION**, and the dry run says so as a `status` entry in its diff. A LOCKED page needs `--status IN_REVISION`, the only status this verb sets. Custom frontmatter is `frontmatter set`, and the source id is `stamp`; `meta set` refuses both.
 
 ### `frontmatter set` replaces; it does not merge
 
@@ -934,6 +1009,152 @@ There is no instant-publish endpoint. `leed page publish` schedules the page for
 ### Known caveat: creating documentation pages in a loop (#401)
 
 For a **documentation page type**, `leed page create` also appends the new page to the bound nav menu, through an unguarded read-modify-write of one KV record. One page at a time is fine; a tight loop of creates can lose appends — the measured loss was 23% at around 98 creations per minute. Create documentation pages **in sequence, not in parallel**, until **#401** lands. The command says so in its own `--help`, and a documentation-type create carries the same warning in its `warnings` array so a caller looping over JSON reads it too.
+
+## Personas (`leed persona`)
+
+The company's buyer personas. Like `leed page`, these need no site checkout: `--company <companyId|domain>` and `-e, --env <name>` select the target. They work on every plan; reading needs `contact:read` and writing `contact:write`.
+
+```bash
+leed persona list                                              # every persona, with its title keywords and contact count
+leed persona get <personaId>                                   # one persona, field by field
+leed persona create --name "VP of Engineering" --goals "Ship faster"
+leed persona set <personaId> --pains "Slow reviews"            # an omitted flag is left untouched
+leed persona set <personaId> --keywords '["vp engineering","head of engineering"]'  # REPLACES the keyword set
+leed persona set <personaId> --clear goals                     # empty one field (repeatable)
+```
+
+The field flags are generated from the same request schema the CMS route and the persona MCP tools use: `--name`, `--summary`, `--goals`, `--pains`, `--triggers`, `--objections`, `--preferred-content`, `--kpis` and `--keywords`. `--keywords` takes a JSON array and replaces the stored set; `--clear <field>` empties a text field; `--from-file <path>` is the base of the patch, with flags layered over it. `get` reads the list, because there is no single-persona route, and an unknown id is `not_found`. There is no `delete`: removing a persona is done in the app. Every write takes `--dry-run`.
+
+## Journey stages (`leed journey`)
+
+The company's funnel stages, in order. They work on every plan; reading needs `journey:read` and writing `journey:write`.
+
+```bash
+leed journey list                                              # the stages, in stage order, with their ids
+leed journey create --name "Decision" --description "Choosing a vendor"   # added at the end
+leed journey set <journeyId> --name "Evaluate"                 # one stage; the others are untouched
+leed journey reorder <journeyId> <journeyId> <journeyId>       # every current id, each once, in the new order
+leed journey delete <journeyId>                                # shows the CMS's preview and asks first
+leed journey delete <journeyId> --yes                          # unattended
+```
+
+Every write changes one stage through its own route, so a stage somebody else added in the meantime is never overwritten. `reorder` must name exactly the current stages: a stale list fails with `conflict`, and `leed journey list` is the remedy. `delete` is gated. At a terminal the CMS's preview (the stage, its position, and what the delete leaves alone) is shown and the question defaults to No; under `--json`, or with no terminal, pass `--yes`; `--dry-run` returns the CMS's preview in `data.preview` and changes nothing. Pages, deliverables and brief questions that name a deleted stage keep its id.
+
+## Campaigns (`leed campaign`)
+
+Campaigns, their audience, their brief and their deliverables: the Engage campaign planner from the command line. **The campaign planner is Growth and up.** Below Growth every `leed campaign` command fails with `permission_denied` (exit `5`), a message naming `upgrade_required`, and the plan-upgrade hint. Reading needs `contact:read`, writing `contact:write`, and `approve`, `reject`, `reschedule` and `accept-review` need `contact:publish`. There is no `delete` for a campaign or a deliverable.
+
+```bash
+leed campaign list                                             # every campaign, each with its readiness
+leed campaign get <campaignId>                                 # the campaign, its audience and its readiness
+leed campaign create --name "Q1 launch" --goal drive-demos --launch-date 2026-11-01
+leed campaign set <campaignId> --channels '[{"channel":"linkedin","account":"acme"}]' --kpis '[{"name":"Demo requests","target":40}]'
+leed campaign set <campaignId> --channels '[]'                 # posts only: no social channel
+leed campaign set <campaignId> --clear channels                # not decided yet
+```
+
+`create` and `set` take their field flags from the shared campaign schema, so every key element the app shows has a flag. Scalars are plain flags (`--goal`, `--goal-detail`, `--business-stage`, `--launch-date`, `--timezone`, `--status`, …); `--kpis`, `--channels` (each `{ channel, account }`) and `--author-ids` take JSON and replace the stored list; `--context-sources` takes the whole object. `--channels '[]'` and `--clear channels` mean different things: the first says the campaign posts nowhere, the second that nobody has decided. Every body is checked against the campaign schema before sign-in, so a bad date, a non-https URL or a duplicate channel is refused naming the field. `readiness` (`ready`, and the key elements still `missing`) is on every `list`, `get`, `create` and `set` result.
+
+### Audience (`leed campaign audience`)
+
+```bash
+leed campaign audience get <campaignId>
+leed campaign audience set <campaignId> --persona-id 3 --persona-id 5   # replaces the persona list, keeps the accounts
+leed campaign audience set <campaignId> --account-id 12                 # replaces the account list, keeps the personas
+leed campaign audience set <campaignId> --clear accounts                # empty one list
+```
+
+The CMS replaces both lists on every write, so `set` reads the audience first and sends back unchanged whichever list the call does not name. Naming the same list both ways (`--persona-id 3 --clear personas`) is refused.
+
+### Brief (`leed campaign brief`)
+
+```bash
+leed campaign brief get <campaignId>                                    # the whole brief, with its revision
+leed campaign brief get <campaignId> --sections messages,questions      # only some sections
+leed campaign brief set <campaignId> --base-revision 4 --file ./brief.json --written-by agent
+```
+
+The file is a JSON object holding any of `narrative`, `messages`, `questions`, `research` and `appendResearch`. A section it names replaces the stored one; `appendResearch` adds one research run, its sources and its findings. The file is checked against the brief's write schema before sign-in, and `baseRevision` and `writtenBy` are flags, never file keys. **`--base-revision` is required**: it is the revision you read with `brief get`, and `0` before the first write. The CLI never reads it for you, because that would defeat the check. A brief changed since fails with `conflict`, `retryable: true` and the hint `leed campaign brief get <campaignId>`, and nothing is written; read it again and redo your edit. Removing a question that a deliverable still lists fails with `conflict`, naming the deliverables. The dry run reports the section names and their counts, not the body.
+
+Every write is held to the CMS's campaign checks, the same ones `campaign.mjs` runs. A write with `--written-by agent` that fails one on an item it adds or changes is refused with `validation_failed`, and `error.details` holds the findings as JSON, each `{ section, id, message }`. Any other write is saved, and `data.warnings` lists what the checks found, which the human output prints as "Saved with N warnings".
+
+### Deliverables (`leed campaign deliverable`)
+
+```bash
+leed campaign deliverable list <campaignId>                             # the plan, in order, with each page's status
+leed campaign deliverable create <campaignId> --type new-page --title "Launch post" --scheduled-date 2026-11-03
+leed campaign deliverable set <campaignId> <itemId> --title "Launch post, v2"
+leed campaign deliverable set <campaignId> <itemId> --scheduled-date 2026-11-05 --yes   # moves its scheduled page
+leed campaign deliverable approve <campaignId> <itemId>                 # schedules a page deliverable's page; asks first
+leed campaign deliverable reject <campaignId> <itemId> --reason "Off message"
+leed campaign deliverable reschedule <campaignId> <itemId> --scheduled-date 2026-11-10
+leed campaign deliverable done <campaignId> <itemId>                    # a posted social item or a held event; --undo reverses it
+leed campaign deliverable accept-review <campaignId> <itemId> --note "Reviewed by hand"
+leed campaign deliverable reorder <campaignId> <itemId> <itemId> <itemId>   # every deliverable id, each once
+leed campaign deliverable create <campaignId> --type new-page --title "Leed vs Acme" --scheduled-date 2026-11-03 --site-path src/compare/leed-vs-acme.hbs --nav.menu-id <menuId>
+leed campaign deliverable set <campaignId> <itemId> --deployment-id <stagingDeploymentId>   # an approved unmanaged page's push; stays approved
+```
+
+`create` and `set` cover every deliverable field: `--type`, `--title`, `--detail`, `--page-id`, `--deployment-id`, `--channel`, `--account`, `--copy`, `--ref`, `--persona-id`, `--journey-id`, `--question-ids`, `--review`, `--assignee-id`, `--sequence`, `--site-path`, `--nav.menu-id`, `--nav.parent-item-id`, `--nav.label`, `--nav.menu-item-id` and `--scheduled-date`. `--review` takes the whole review object, and never its `override`, which only `accept-review` writes. A new deliverable is a draft. `--written-by agent|person` says who wrote the change, and is never stored: an agent-written `create` or `set` whose copy or campaign-draft blocks fail the campaign checks is refused with `validation_failed` and the findings in `error.details`, and every other write returns what the checks found in `data.warnings`.
+
+**An unmanaged page deliverable** is a new-page or republish deliverable with `--site-path`, the `.hbs` file in the site checkout that builds the page; its `--page-id` is the UUID in that file's front matter, which needs no CMS page until the production build indexes it. Approving it schedules nothing: it ships with the site (`leed site push`, then `leed deployments promote`), and `list` carries its `siteSync`, `awaiting-push`, `staging-building`, `staging-failed`, `on-staging`, `live` or `removed`, derived from the staging deployment linked as its `--deployment-id` and the promotions since. `--nav.*` records where a new page belongs in a menu (any new-page or republish deliverable), and `--nav.menu-item-id` the item once it is added; neither returns an approved deliverable to draft.
+
+**Approving a new-page or republish deliverable schedules its page for the deliverable's date**, rejecting an approved one unschedules it, and rescheduling moves it. Each result carries `page: { pageId, action, reason? }` (`null` when the deliverable has no page to change). `approve`, `reject` and `reschedule` are gated: at a terminal the CMS's preview (the deliverable, its date and what happens to its page) is shown and the question defaults to No; a preview that already lists a refusal is reported as that refusal without asking. A `set` that would move or unschedule a scheduled page is refused by the CMS until it is confirmed: at a terminal you are shown its preview and asked; under `--json` pass `--yes`, or the `confirmation_required` refusal carries the CMS's preview as JSON in `error.details`. A `set`'s `--dry-run` sends nothing and cannot know whether the page would move; the dry runs of `approve`, `reject` and `reschedule` return the CMS's preview in `data.preview`.
+
+The refusals keep what they name:
+
+| CMS refusal | Code | What the error names |
+|---|---|---|
+| `deliverable_schedule_refused` | `validation_failed` (`permission_denied` for `page_publish_required`) | the check's `code`, its `reason` and the page's `missingFields`, also in `details` |
+| `deliverable_page_taken` | `conflict` | the deliverable that already schedules the page |
+| `deliverable_ref_taken` | `conflict` | the `existingId` holding that `--ref` |
+| `deliverable_target_required` | `conflict` | the page or deployment approving needs |
+| `deliverable_changed` | `conflict`, `retryable: true` | re-read with `deliverable list` and retry |
+| `deliverable_sequence_stale` | `conflict` | the reorder list was not exactly the campaign's deliverables |
+
+### Step runs (`leed campaign run`)
+
+Run one campaign step in Leed, the way the app's step buttons do, and handle the run from the terminal. A run collects its writes into a proposal that nothing applies until you approve it.
+
+```bash
+leed campaign run <campaignId> <step>                  # start a step: setup, plan, draft, review or schedule; prints the run id and status
+leed campaign run <campaignId> <step> --wait           # start it and follow it until it needs an answer, needs approval, or ends
+leed campaign run start <campaignId> <step>            # the same, by its full name
+leed campaign run status <runId> [--wait]              # the run: its status, its question or its numbered proposal
+leed campaign run answer <runId> "LinkedIn first" [--wait]   # answer its question, 1–4000 characters
+leed campaign run approve <runId> --drop 2 --drop 5    # apply the proposal, leaving out items #2 and #5; asks first
+leed campaign run cancel <runId>                       # stop it wherever it is; nothing is applied
+```
+
+`--wait` polls the run (`GET /api/campaign-step-runs/:runId`) rather than holding a stream, so it works through proxies and in CI, and returns when the run is `waiting_for_answer`, `waiting_for_approval`, `applied`, `cancelled` or `failed`. `answer --wait` skips the question it just answered and stops at the next one. A run that fails exits `3` with `validation_failed`, the run's error in the message and the run as JSON in `error.details`; `--timeout <seconds>` (default 600) bounds the wait, after which it fails with `network_error` and the hint `leed campaign run status <runId> --wait`. To reject a proposal, cancel the run.
+
+`approve` is gated: at a terminal the CMS's preview is shown and the question defaults to No; under `--json` without `--yes` it refuses with `confirmation_required`, and in human mode with no terminal with `interactive_input_required`, both before any request. `--dry-run` returns the preview in `data.preview` and applies nothing. `--drop` takes a proposal item's `#number`, and is repeatable. A proposal some of whose writes failed is `validation_failed` naming how many were applied, with the run and that count in `error.details`; read the run before running the step again.
+
+The refusals are the app's:
+
+| CMS refusal | Code | What the error names |
+|---|---|---|
+| below Growth (`upgrade_required`) | `permission_denied` | the plan-upgrade hint, as every `leed campaign` command |
+| `role_required` | `permission_denied` | running a step needs the Content Publisher role |
+| `research_not_in_leed` | `invalid_arguments` | research runs in your AI tool (`/leed:campaign-research`), or is skipped with `POST /api/campaigns/<id>/steps/research/skip` |
+| `run_active` | `conflict` | the campaign's active run (id, step, status), also in `details`; one run at a time |
+| `not_ready` | `conflict` | the key elements `plan`, `draft` and `schedule` still need, also in `details` |
+| `not_waiting_for_answer`, `not_waiting_for_approval`, `applying`, `run_ended` | `conflict` | the run's status, and `leed campaign run status <runId>` |
+| `run_changed` | `conflict` | how many writes had already been applied when the run changed underneath the approval, with `retryable: false`: the run has failed, so read it with `leed campaign run status <runId>` rather than approving again |
+| `invalid_choices` | `invalid_arguments` | a `--drop` the proposal does not have |
+
+## Plan calendar (`leed plan calendar`)
+
+```bash
+leed plan calendar --from 2026-11-02 --to 2026-11-08               # one week: pages, deployments and deliverables
+leed plan calendar --from 2026-11-02T00:00:00-05:00 --to 2026-11-08T23:59:59-05:00   # in another zone
+```
+
+What the Plan tab shows, between two dates inclusive: scheduled and planned page revisions, deployments and campaign deliverables, each with `scheduledDate` in milliseconds and `scheduledAt` as an ISO instant, plus `draftCampaignIds`. It works on every plan and needs `contact:read`; below Growth it lists pages and deployments and no deliverables.
+
+### Date flags
+
+`--planned-date`, `--scheduled-date`, `--from` and `--to` take `YYYY-MM-DD` or a full ISO 8601 instant **with a zone** (`2026-11-01T09:00:00Z`, or `…+01:00`). A bare day means 00:00 UTC that day, and a bare `--to` means the end of that UTC day, because the calendar's range is inclusive; pass an instant when you mean another time or zone. Anything else is refused as `invalid_arguments` before sign-in. `leed page schedule --at` takes only the instant.
 
 ## Deployments (`leed deployments`)
 
