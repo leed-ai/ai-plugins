@@ -38,7 +38,7 @@ A claim is anything a reader could check (`../campaign-patterns/references/claim
 | `scores` | every score is at least 3 |
 | `coverage` | `coveragePct` is at least 80 |
 | `claims` | there are 0 untraced claims |
-| `independent` | `independent` is true: the drafter and the critic are of different families in the known-families table, Anthropic's `opus`, `sonnet`, `haiku` and `fable` or OpenAI's `gpt-5`, `gpt-4.5`, `gpt-4.1`, `gpt-4o`, `gpt-4`, `gpt-3.5`, `o1`, `o3` and `o4`, so `independenceBasis` is `cross-vendor` or `cross-family`. Two versions of one family (`same-family`) and a model the table does not know (`unknown`) are not independent |
+| `independent` | `independent` is true: the drafter and the critic are from different vendors, or of different families in the known-families table, Anthropic's `opus`, `sonnet`, `haiku` and `fable` or OpenAI's `gpt-5`, `gpt-4.5`, `gpt-4.1`, `gpt-4o`, `gpt-4`, `gpt-3.5`, `o1`, `o3`, `o4` and `gpt-oss` among them, so `independenceBasis` is `cross-vendor` or `cross-family`. Two versions of one family (`same-family`) and, from one vendor or an unknown one, a model the table does not know (`unknown`) are not independent |
 
 A result that misses only `independent` met every gate on its content, so it gets no fix pass: a person accepts it on the Plan calendar.
 

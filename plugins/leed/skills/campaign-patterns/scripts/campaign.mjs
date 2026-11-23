@@ -3470,6 +3470,11 @@ function checkResearch(input, flags = {}) {
 // ../../libs/data-types/src/campaignChecks/modelFamilies.ts
 var claude = (family) => ({ family, vendor: "anthropic", pattern: new RegExp(family) });
 var openai = (family, pattern) => ({ family, vendor: "openai", pattern });
+var line = (family, vendor) => ({
+  family,
+  vendor,
+  pattern: new RegExp(`^${family}(?:[\\d.-]|$)`)
+});
 var KNOWN_FAMILIES = Object.freeze([
   claude("opus"),
   claude("sonnet"),
@@ -3483,30 +3488,93 @@ var KNOWN_FAMILIES = Object.freeze([
   openai("gpt-3.5", /^gpt-3\.5(?:-|$)/),
   openai("o1", /^o1(?:-|$)/),
   openai("o3", /^o3(?:-|$)/),
-  openai("o4", /^o4(?:-|$)/)
+  openai("o4", /^o4(?:-|$)/),
+  openai("gpt-oss", /^gpt-oss(?:-|$)/),
+  line("deepseek", "deepseek"),
+  line("inkling", "thinkingmachines"),
+  line("glm", "zai"),
+  line("gemini", "google"),
+  line("gemma", "google"),
+  line("grok", "xai"),
+  line("llama", "meta"),
+  line("qwen", "alibaba"),
+  line("mistral", "mistral"),
+  line("kimi", "moonshot")
 ]);
+var ORG_VENDORS = Object.freeze({
+  "deepseek-ai": "deepseek",
+  thinkingmachines: "thinkingmachines",
+  "zai-org": "zai",
+  openai: "openai",
+  google: "google",
+  meta: "meta",
+  "meta-llama": "meta",
+  qwen: "alibaba",
+  mistralai: "mistral",
+  mistral: "mistral",
+  moonshotai: "moonshot",
+  anthropic: "anthropic",
+  xai: "xai"
+});
+var PREFIX_VENDORS = Object.freeze([
+  [/^claude/, "anthropic"],
+  [/^(?:chat)?gpt-|^o\d/, "openai"],
+  [/^gemini|^gemma/, "google"],
+  [/^grok/, "xai"],
+  [/^deepseek/, "deepseek"],
+  [/^llama/, "meta"],
+  [/^qwen/, "alibaba"],
+  [/^mistral|^mixtral/, "mistral"],
+  [/^kimi/, "moonshot"],
+  [/^glm/, "zai"]
+]);
+var PROVIDER_PREFIX = /^(?:workers-ai|openai|anthropic|google-ai-studio|google|grok|xai)\//;
 var CLAUDE_FAMILIES = Object.freeze(KNOWN_FAMILIES.filter((row) => row.vendor === "anthropic").map((row) => row.family));
 var ALIAS = new RegExp(`^(?:${CLAUDE_FAMILIES.join("|")})(?:\\[[^\\]]*\\])?$`);
 var SNAPSHOT_SUFFIX = /(?:-\d{4}-\d{2}-\d{2}|-\d{8}|@.*)$/;
 function knownFamily(id) {
+  const parsed = parseModelId(id);
+  if (!parsed)
+    return null;
+  const stripped = parsed.name.replace(SNAPSHOT_SUFFIX, "");
+  return KNOWN_FAMILIES.find((row) => row.pattern.test(stripped)) ?? null;
+}
+function vendorOf(id) {
+  const known = knownFamily(id);
+  if (known)
+    return known.vendor;
+  const parsed = parseModelId(id);
+  if (!parsed)
+    return null;
+  if (parsed.org)
+    return ORG_VENDORS[parsed.org] ?? null;
+  return PREFIX_VENDORS.find(([pattern]) => pattern.test(parsed.name))?.[1] ?? null;
+}
+function parseModelId(id) {
   if (typeof id !== "string")
     return null;
-  const lower = id.trim().toLowerCase();
+  const lower = id.trim().toLowerCase().replace(PROVIDER_PREFIX, "");
   if (lower === "" || lower === "unknown" || ALIAS.test(lower))
     return null;
-  const stripped = lower.replace(SNAPSHOT_SUFFIX, "");
-  return KNOWN_FAMILIES.find((row) => row.pattern.test(stripped)) ?? null;
+  const workersAi = /^@cf\/([^/]+)\/(.+)$/.exec(lower);
+  if (workersAi)
+    return { org: workersAi[1], name: workersAi[2] };
+  return { org: null, name: lower };
 }
 function independenceOf(drafterModel, criticModel) {
   const drafter = knownFamily(drafterModel);
   const critic = knownFamily(criticModel);
   const families = { drafterFamily: drafter?.family ?? null, criticFamily: critic?.family ?? null };
+  const drafterVendor = vendorOf(drafterModel);
+  const criticVendor = vendorOf(criticModel);
+  if (drafterVendor && criticVendor && drafterVendor !== criticVendor) {
+    return { independent: true, basis: "cross-vendor", ...families };
+  }
   if (!drafter || !critic)
     return { independent: false, basis: "unknown", ...families };
   if (drafter.family === critic.family)
     return { independent: false, basis: "same-family", ...families };
-  const basis = drafter.vendor === critic.vendor ? "cross-family" : "cross-vendor";
-  return { independent: true, basis, ...families };
+  return { independent: true, basis: "cross-family", ...families };
 }
 
 // ../../libs/data-types/src/campaignChecks/review.ts
